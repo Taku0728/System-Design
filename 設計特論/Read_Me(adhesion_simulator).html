@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="utf-8" />
+      <title>adhesion_simulator</title>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    jax: ["input/TeX","output/HTML-CSS"],
+    extensions: [],
+    TeX: {
+      extensions: ["AMSmath.js","AMSsymbols.js","noErrors.js","noUndefined.js"]
+    },
+    showMathMenu: false
+  });
+</script>
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js">
+</script>
+      <style>.markdown-preview:not([data-use-github-style]) { padding: 2em; font-size: 1.2em; color: rgb(171, 178, 191); overflow: auto; background-color: rgb(40, 44, 52); }
+.markdown-preview:not([data-use-github-style]) > :first-child { margin-top: 0px; }
+.markdown-preview:not([data-use-github-style]) h1, .markdown-preview:not([data-use-github-style]) h2, .markdown-preview:not([data-use-github-style]) h3, .markdown-preview:not([data-use-github-style]) h4, .markdown-preview:not([data-use-github-style]) h5, .markdown-preview:not([data-use-github-style]) h6 { line-height: 1.2; margin-top: 1.5em; margin-bottom: 0.5em; color: rgb(255, 255, 255); }
+.markdown-preview:not([data-use-github-style]) h1 { font-size: 2.4em; font-weight: 300; }
+.markdown-preview:not([data-use-github-style]) h2 { font-size: 1.8em; font-weight: 400; }
+.markdown-preview:not([data-use-github-style]) h3 { font-size: 1.5em; font-weight: 500; }
+.markdown-preview:not([data-use-github-style]) h4 { font-size: 1.2em; font-weight: 600; }
+.markdown-preview:not([data-use-github-style]) h5 { font-size: 1.1em; font-weight: 600; }
+.markdown-preview:not([data-use-github-style]) h6 { font-size: 1em; font-weight: 600; }
+.markdown-preview:not([data-use-github-style]) strong { color: rgb(255, 255, 255); }
+.markdown-preview:not([data-use-github-style]) del { color: rgb(124, 135, 156); }
+.markdown-preview:not([data-use-github-style]) a, .markdown-preview:not([data-use-github-style]) a code { color: rgb(82, 139, 255); }
+.markdown-preview:not([data-use-github-style]) img { max-width: 100%; }
+.markdown-preview:not([data-use-github-style]) > p { margin-top: 0px; margin-bottom: 1.5em; }
+.markdown-preview:not([data-use-github-style]) > ul, .markdown-preview:not([data-use-github-style]) > ol { margin-bottom: 1.5em; }
+.markdown-preview:not([data-use-github-style]) blockquote { margin: 1.5em 0px; font-size: inherit; color: rgb(124, 135, 156); border-color: rgb(75, 83, 98); border-width: 4px; }
+.markdown-preview:not([data-use-github-style]) hr { margin: 3em 0px; border-top: 2px dashed rgb(75, 83, 98); background: none; }
+.markdown-preview:not([data-use-github-style]) table { margin: 1.5em 0px; }
+.markdown-preview:not([data-use-github-style]) th { color: rgb(255, 255, 255); }
+.markdown-preview:not([data-use-github-style]) th, .markdown-preview:not([data-use-github-style]) td { padding: 0.66em 1em; border: 1px solid rgb(75, 83, 98); }
+.markdown-preview:not([data-use-github-style]) pre, .markdown-preview:not([data-use-github-style]) code { color: rgb(255, 255, 255); background-color: rgb(58, 63, 75); }
+.markdown-preview:not([data-use-github-style]) pre, .markdown-preview:not([data-use-github-style]) pre.editor-colors { margin: 1.5em 0px; padding: 1em; font-size: 0.92em; border-radius: 3px; background-color: rgb(49, 54, 63); }
+.markdown-preview:not([data-use-github-style]) kbd { color: rgb(255, 255, 255); border-width: 1px 1px 2px; border-style: solid; border-color: rgb(75, 83, 98) rgb(75, 83, 98) rgb(62, 68, 81); background-color: rgb(58, 63, 75); }
+.markdown-preview[data-use-github-style] { font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif; line-height: 1.6; word-wrap: break-word; padding: 30px; font-size: 16px; color: rgb(51, 51, 51); overflow: scroll; background-color: rgb(255, 255, 255); }
+.markdown-preview[data-use-github-style] > :first-child { margin-top: 0px !important; }
+.markdown-preview[data-use-github-style] > :last-child { margin-bottom: 0px !important; }
+.markdown-preview[data-use-github-style] a:not([href]) { color: inherit; text-decoration: none; }
+.markdown-preview[data-use-github-style] .absent { color: rgb(204, 0, 0); }
+.markdown-preview[data-use-github-style] .anchor { position: absolute; top: 0px; left: 0px; display: block; padding-right: 6px; padding-left: 30px; margin-left: -30px; }
+.markdown-preview[data-use-github-style] .anchor:focus { outline: none; }
+.markdown-preview[data-use-github-style] h1, .markdown-preview[data-use-github-style] h2, .markdown-preview[data-use-github-style] h3, .markdown-preview[data-use-github-style] h4, .markdown-preview[data-use-github-style] h5, .markdown-preview[data-use-github-style] h6 { position: relative; margin-top: 1em; margin-bottom: 16px; font-weight: bold; line-height: 1.4; }
+.markdown-preview[data-use-github-style] h1 .octicon-link, .markdown-preview[data-use-github-style] h2 .octicon-link, .markdown-preview[data-use-github-style] h3 .octicon-link, .markdown-preview[data-use-github-style] h4 .octicon-link, .markdown-preview[data-use-github-style] h5 .octicon-link, .markdown-preview[data-use-github-style] h6 .octicon-link { display: none; color: rgb(0, 0, 0); vertical-align: middle; }
+.markdown-preview[data-use-github-style] h1:hover .anchor, .markdown-preview[data-use-github-style] h2:hover .anchor, .markdown-preview[data-use-github-style] h3:hover .anchor, .markdown-preview[data-use-github-style] h4:hover .anchor, .markdown-preview[data-use-github-style] h5:hover .anchor, .markdown-preview[data-use-github-style] h6:hover .anchor { padding-left: 8px; margin-left: -30px; text-decoration: none; }
+.markdown-preview[data-use-github-style] h1:hover .anchor .octicon-link, .markdown-preview[data-use-github-style] h2:hover .anchor .octicon-link, .markdown-preview[data-use-github-style] h3:hover .anchor .octicon-link, .markdown-preview[data-use-github-style] h4:hover .anchor .octicon-link, .markdown-preview[data-use-github-style] h5:hover .anchor .octicon-link, .markdown-preview[data-use-github-style] h6:hover .anchor .octicon-link { display: inline-block; }
+.markdown-preview[data-use-github-style] h1 tt, .markdown-preview[data-use-github-style] h2 tt, .markdown-preview[data-use-github-style] h3 tt, .markdown-preview[data-use-github-style] h4 tt, .markdown-preview[data-use-github-style] h5 tt, .markdown-preview[data-use-github-style] h6 tt, .markdown-preview[data-use-github-style] h1 code, .markdown-preview[data-use-github-style] h2 code, .markdown-preview[data-use-github-style] h3 code, .markdown-preview[data-use-github-style] h4 code, .markdown-preview[data-use-github-style] h5 code, .markdown-preview[data-use-github-style] h6 code { font-size: inherit; }
+.markdown-preview[data-use-github-style] h1 { padding-bottom: 0.3em; font-size: 2.25em; line-height: 1.2; border-bottom: 1px solid rgb(238, 238, 238); }
+.markdown-preview[data-use-github-style] h1 .anchor { line-height: 1; }
+.markdown-preview[data-use-github-style] h2 { padding-bottom: 0.3em; font-size: 1.75em; line-height: 1.225; border-bottom: 1px solid rgb(238, 238, 238); }
+.markdown-preview[data-use-github-style] h2 .anchor { line-height: 1; }
+.markdown-preview[data-use-github-style] h3 { font-size: 1.5em; line-height: 1.43; }
+.markdown-preview[data-use-github-style] h3 .anchor { line-height: 1.2; }
+.markdown-preview[data-use-github-style] h4 { font-size: 1.25em; }
+.markdown-preview[data-use-github-style] h4 .anchor { line-height: 1.2; }
+.markdown-preview[data-use-github-style] h5 { font-size: 1em; }
+.markdown-preview[data-use-github-style] h5 .anchor { line-height: 1.1; }
+.markdown-preview[data-use-github-style] h6 { font-size: 1em; color: rgb(119, 119, 119); }
+.markdown-preview[data-use-github-style] h6 .anchor { line-height: 1.1; }
+.markdown-preview[data-use-github-style] p, .markdown-preview[data-use-github-style] blockquote, .markdown-preview[data-use-github-style] ul, .markdown-preview[data-use-github-style] ol, .markdown-preview[data-use-github-style] dl, .markdown-preview[data-use-github-style] table, .markdown-preview[data-use-github-style] pre { margin-top: 0px; margin-bottom: 16px; }
+.markdown-preview[data-use-github-style] hr { height: 4px; padding: 0px; margin: 16px 0px; border: 0px none; background-color: rgb(231, 231, 231); }
+.markdown-preview[data-use-github-style] ul, .markdown-preview[data-use-github-style] ol { padding-left: 2em; }
+.markdown-preview[data-use-github-style] ul.no-list, .markdown-preview[data-use-github-style] ol.no-list { padding: 0px; list-style-type: none; }
+.markdown-preview[data-use-github-style] ul ul, .markdown-preview[data-use-github-style] ul ol, .markdown-preview[data-use-github-style] ol ol, .markdown-preview[data-use-github-style] ol ul { margin-top: 0px; margin-bottom: 0px; }
+.markdown-preview[data-use-github-style] li > p { margin-top: 16px; }
+.markdown-preview[data-use-github-style] dl { padding: 0px; }
+.markdown-preview[data-use-github-style] dl dt { padding: 0px; margin-top: 16px; font-size: 1em; font-style: italic; font-weight: bold; }
+.markdown-preview[data-use-github-style] dl dd { padding: 0px 16px; margin-bottom: 16px; }
+.markdown-preview[data-use-github-style] blockquote { padding: 0px 15px; color: rgb(119, 119, 119); border-left: 4px solid rgb(221, 221, 221); }
+.markdown-preview[data-use-github-style] blockquote > :first-child { margin-top: 0px; }
+.markdown-preview[data-use-github-style] blockquote > :last-child { margin-bottom: 0px; }
+.markdown-preview[data-use-github-style] table { display: block; width: 100%; overflow: auto; word-break: keep-all; }
+.markdown-preview[data-use-github-style] table th { font-weight: bold; }
+.markdown-preview[data-use-github-style] table th, .markdown-preview[data-use-github-style] table td { padding: 6px 13px; border: 1px solid rgb(221, 221, 221); }
+.markdown-preview[data-use-github-style] table tr { border-top: 1px solid rgb(204, 204, 204); background-color: rgb(255, 255, 255); }
+.markdown-preview[data-use-github-style] table tr:nth-child(2n) { background-color: rgb(248, 248, 248); }
+.markdown-preview[data-use-github-style] img { max-width: 100%; box-sizing: border-box; }
+.markdown-preview[data-use-github-style] .emoji { max-width: none; }
+.markdown-preview[data-use-github-style] span.frame { display: block; overflow: hidden; }
+.markdown-preview[data-use-github-style] span.frame > span { display: block; float: left; width: auto; padding: 7px; margin: 13px 0px 0px; overflow: hidden; border: 1px solid rgb(221, 221, 221); }
+.markdown-preview[data-use-github-style] span.frame span img { display: block; float: left; }
+.markdown-preview[data-use-github-style] span.frame span span { display: block; padding: 5px 0px 0px; clear: both; color: rgb(51, 51, 51); }
+.markdown-preview[data-use-github-style] span.align-center { display: block; overflow: hidden; clear: both; }
+.markdown-preview[data-use-github-style] span.align-center > span { display: block; margin: 13px auto 0px; overflow: hidden; text-align: center; }
+.markdown-preview[data-use-github-style] span.align-center span img { margin: 0px auto; text-align: center; }
+.markdown-preview[data-use-github-style] span.align-right { display: block; overflow: hidden; clear: both; }
+.markdown-preview[data-use-github-style] span.align-right > span { display: block; margin: 13px 0px 0px; overflow: hidden; text-align: right; }
+.markdown-preview[data-use-github-style] span.align-right span img { margin: 0px; text-align: right; }
+.markdown-preview[data-use-github-style] span.float-left { display: block; float: left; margin-right: 13px; overflow: hidden; }
+.markdown-preview[data-use-github-style] span.float-left span { margin: 13px 0px 0px; }
+.markdown-preview[data-use-github-style] span.float-right { display: block; float: right; margin-left: 13px; overflow: hidden; }
+.markdown-preview[data-use-github-style] span.float-right > span { display: block; margin: 13px auto 0px; overflow: hidden; text-align: right; }
+.markdown-preview[data-use-github-style] code, .markdown-preview[data-use-github-style] tt { padding: 0.2em 0px; margin: 0px; font-size: 85%; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157); }
+.markdown-preview[data-use-github-style] code::before, .markdown-preview[data-use-github-style] tt::before, .markdown-preview[data-use-github-style] code::after, .markdown-preview[data-use-github-style] tt::after { letter-spacing: -0.2em; content: " "; }
+.markdown-preview[data-use-github-style] code br, .markdown-preview[data-use-github-style] tt br { display: none; }
+.markdown-preview[data-use-github-style] del code { text-decoration: inherit; }
+.markdown-preview[data-use-github-style] pre > code { padding: 0px; margin: 0px; font-size: 100%; word-break: normal; white-space: pre; border: 0px; background: transparent; }
+.markdown-preview[data-use-github-style] .highlight { margin-bottom: 16px; }
+.markdown-preview[data-use-github-style] .highlight pre, .markdown-preview[data-use-github-style] pre { padding: 16px; overflow: auto; font-size: 85%; line-height: 1.45; border-radius: 3px; background-color: rgb(247, 247, 247); }
+.markdown-preview[data-use-github-style] .highlight pre { margin-bottom: 0px; word-break: normal; }
+.markdown-preview[data-use-github-style] pre { word-wrap: normal; }
+.markdown-preview[data-use-github-style] pre code, .markdown-preview[data-use-github-style] pre tt { display: inline; max-width: initial; padding: 0px; margin: 0px; overflow: initial; line-height: inherit; word-wrap: normal; border: 0px; background-color: transparent; }
+.markdown-preview[data-use-github-style] pre code::before, .markdown-preview[data-use-github-style] pre tt::before, .markdown-preview[data-use-github-style] pre code::after, .markdown-preview[data-use-github-style] pre tt::after { content: normal; }
+.markdown-preview[data-use-github-style] kbd { display: inline-block; padding: 3px 5px; font-size: 11px; line-height: 10px; color: rgb(85, 85, 85); vertical-align: middle; border-width: 1px; border-style: solid; border-color: rgb(204, 204, 204) rgb(204, 204, 204) rgb(187, 187, 187); border-radius: 3px; box-shadow: rgb(187, 187, 187) 0px -1px 0px inset; background-color: rgb(252, 252, 252); }
+.markdown-preview[data-use-github-style] a { color: rgb(51, 122, 183); }
+.markdown-preview[data-use-github-style] pre, .markdown-preview[data-use-github-style] code { color: inherit; }
+.markdown-preview[data-use-github-style] pre, .markdown-preview[data-use-github-style] pre.editor-colors { padding: 0.8em 1em; margin-bottom: 1em; font-size: 0.85em; border-radius: 4px; overflow: auto; }
+.scrollbars-visible-always .markdown-preview pre.editor-colors .vertical-scrollbar, .scrollbars-visible-always .markdown-preview pre.editor-colors .horizontal-scrollbar { visibility: hidden; }
+.scrollbars-visible-always .markdown-preview pre.editor-colors:hover .vertical-scrollbar, .scrollbars-visible-always .markdown-preview pre.editor-colors:hover .horizontal-scrollbar { visibility: visible; }
+.markdown-preview del { text-decoration: none; position: relative; }
+.markdown-preview del::after { border-bottom: 1px solid black; content: ""; left: 0px; position: absolute; right: 0px; top: 50%; }
+.markdown-preview .flash { animation: flash 1s ease-out 1; outline: rgba(255, 0, 0, 0) solid 1px; }
+.markdown-preview .flash:not(li) { display: block; }
+.markdown-preview { max-width: 1000px; margin: 0px auto; padding: 25px; color: black; }
+.markdown-preview hr { margin: 50px 0px; background-color: transparent; }
+.markdown-preview hr::after { content: ""; display: block; border-top-style: ridge; }
+.markdown-preview hr.pb { break-after: page; }
+.markdown-preview hr.pb::after { display: none; }
+.markdown-preview h1, .markdown-preview h2, .markdown-preview h3, .markdown-preview h4, .markdown-preview h5 { font-weight: normal; border-color: rgb(102, 102, 102); }
+.markdown-preview h1 { font-size: 35px; border: none; margin: 30px auto; text-align: center; letter-spacing: 5px; }
+.markdown-preview h2 { font-size: 25px; letter-spacing: 3px; margin: 50px auto 25px; }
+.markdown-preview h3 { font-size: 18px; letter-spacing: 1px; font-weight: bold; margin-bottom: 10px; }
+.markdown-preview h4 { font-size: 13px; font-weight: bold; margin-bottom: 10px; }
+.markdown-preview p, .markdown-preview table, .markdown-preview ul, .markdown-preview ol, .markdown-preview dl, .markdown-preview pre, .markdown-preview blockquote { margin-left: 25px; }
+.markdown-preview p ul, .markdown-preview table ul, .markdown-preview ul ul, .markdown-preview ol ul, .markdown-preview dl ul, .markdown-preview pre ul, .markdown-preview blockquote ul, .markdown-preview p ol, .markdown-preview table ol, .markdown-preview ul ol, .markdown-preview ol ol, .markdown-preview dl ol, .markdown-preview pre ol, .markdown-preview blockquote ol, .markdown-preview p dl, .markdown-preview table dl, .markdown-preview ul dl, .markdown-preview ol dl, .markdown-preview dl dl, .markdown-preview pre dl, .markdown-preview blockquote dl { margin-left: 0px; }
+.markdown-preview table { border-collapse: collapse; border-spacing: 0px; max-width: 800px; }
+.markdown-preview table th { text-align: center; border-color: rgb(102, 102, 102); background-color: rgb(238, 238, 238); }
+.markdown-preview table tr { border-top: rgb(102, 102, 102); }
+.markdown-preview table td { border-color: rgb(102, 102, 102); }
+.markdown-preview .margin-clear { margin-left: 0px; }
+.markdown-preview .center { text-align: center; }
+.markdown-preview .right { text-align: right; }
+.bracket-matcher .region {
+  border-bottom: 1px dotted lime;
+  position: absolute;
+}
+
+.auto-cursor {
+  cursor: default;
+}
+.highlight-green .region {
+  background-color: #43d08a;
+}
+.highlight-blue .region {
+  background-color: #33a0ff;
+}
+.highlight-red .region {
+  background-color: #e05252;
+}
+
+.spell-check-misspelling .region {
+  border-bottom: 2px dotted rgba(255, 51, 51, 0.75);
+}
+.spell-check-corrections {
+  width: 25em !important;
+}
+
+pre.editor-colors {
+  background-color: #282c34;
+  color: #abb2bf;
+}
+pre.editor-colors .line.cursor-line {
+  background-color: rgba(153, 187, 255, 0.04);
+}
+pre.editor-colors .invisible {
+  color: #abb2bf;
+}
+pre.editor-colors .cursor {
+  border-left: 2px solid #528bff;
+}
+pre.editor-colors .selection .region {
+  background-color: #3e4451;
+}
+pre.editor-colors .bracket-matcher .region {
+  border-bottom: 1px solid #528bff;
+  box-sizing: border-box;
+}
+pre.editor-colors .invisible-character {
+  color: rgba(171, 178, 191, 0.15);
+}
+pre.editor-colors .indent-guide {
+  color: rgba(171, 178, 191, 0.15);
+}
+pre.editor-colors .wrap-guide {
+  background-color: rgba(171, 178, 191, 0.15);
+}
+pre.editor-colors .find-result .region.region.region,
+pre.editor-colors .current-result .region.region.region {
+  border-radius: 2px;
+  background-color: rgba(82, 139, 255, 0.24);
+  transition: border-color 0.4s;
+}
+pre.editor-colors .find-result .region.region.region {
+  border: 2px solid transparent;
+}
+pre.editor-colors .current-result .region.region.region {
+  border: 2px solid #528bff;
+  transition-duration: .1s;
+}
+pre.editor-colors .gutter .line-number {
+  color: #636d83;
+  -webkit-font-smoothing: antialiased;
+}
+pre.editor-colors .gutter .line-number.cursor-line {
+  color: #abb2bf;
+  background-color: #2c313a;
+}
+pre.editor-colors .gutter .line-number.cursor-line-no-selection {
+  background-color: transparent;
+}
+pre.editor-colors .gutter .line-number .icon-right {
+  color: #abb2bf;
+}
+pre.editor-colors .gutter:not(.git-diff-icon) .line-number.git-line-removed.git-line-removed::before {
+  bottom: -3px;
+}
+pre.editor-colors .gutter:not(.git-diff-icon) .line-number.git-line-removed::after {
+  content: "";
+  position: absolute;
+  left: 0px;
+  bottom: 0px;
+  width: 25px;
+  border-bottom: 1px dotted rgba(224, 82, 82, 0.5);
+  pointer-events: none;
+}
+pre.editor-colors .gutter .line-number.folded,
+pre.editor-colors .gutter .line-number:after,
+pre.editor-colors .fold-marker:after {
+  color: #abb2bf;
+}
+.syntax--comment {
+  color: #5c6370;
+  font-style: italic;
+}
+.syntax--comment .syntax--markup.syntax--link {
+  color: #5c6370;
+}
+.syntax--entity.syntax--name.syntax--type {
+  color: #e5c07b;
+}
+.syntax--entity.syntax--other.syntax--inherited-class {
+  color: #98c379;
+}
+.syntax--keyword {
+  color: #c678dd;
+}
+.syntax--keyword.syntax--control {
+  color: #c678dd;
+}
+.syntax--keyword.syntax--operator {
+  color: #abb2bf;
+}
+.syntax--keyword.syntax--other.syntax--special-method {
+  color: #61afef;
+}
+.syntax--keyword.syntax--other.syntax--unit {
+  color: #d19a66;
+}
+.syntax--storage {
+  color: #c678dd;
+}
+.syntax--storage.syntax--type.syntax--annotation,
+.syntax--storage.syntax--type.syntax--primitive {
+  color: #c678dd;
+}
+.syntax--storage.syntax--modifier.syntax--package,
+.syntax--storage.syntax--modifier.syntax--import {
+  color: #abb2bf;
+}
+.syntax--constant {
+  color: #d19a66;
+}
+.syntax--constant.syntax--variable {
+  color: #d19a66;
+}
+.syntax--constant.syntax--character.syntax--escape {
+  color: #56b6c2;
+}
+.syntax--constant.syntax--numeric {
+  color: #d19a66;
+}
+.syntax--constant.syntax--other.syntax--color {
+  color: #56b6c2;
+}
+.syntax--constant.syntax--other.syntax--symbol {
+  color: #56b6c2;
+}
+.syntax--variable {
+  color: #e06c75;
+}
+.syntax--variable.syntax--interpolation {
+  color: #be5046;
+}
+.syntax--variable.syntax--parameter {
+  color: #abb2bf;
+}
+.syntax--string {
+  color: #98c379;
+}
+.syntax--string.syntax--regexp {
+  color: #56b6c2;
+}
+.syntax--string.syntax--regexp .syntax--source.syntax--ruby.syntax--embedded {
+  color: #e5c07b;
+}
+.syntax--string.syntax--other.syntax--link {
+  color: #e06c75;
+}
+.syntax--punctuation.syntax--definition.syntax--comment {
+  color: #5c6370;
+}
+.syntax--punctuation.syntax--definition.syntax--method-parameters,
+.syntax--punctuation.syntax--definition.syntax--function-parameters,
+.syntax--punctuation.syntax--definition.syntax--parameters,
+.syntax--punctuation.syntax--definition.syntax--separator,
+.syntax--punctuation.syntax--definition.syntax--seperator,
+.syntax--punctuation.syntax--definition.syntax--array {
+  color: #abb2bf;
+}
+.syntax--punctuation.syntax--definition.syntax--heading,
+.syntax--punctuation.syntax--definition.syntax--identity {
+  color: #61afef;
+}
+.syntax--punctuation.syntax--definition.syntax--bold {
+  color: #e5c07b;
+  font-weight: bold;
+}
+.syntax--punctuation.syntax--definition.syntax--italic {
+  color: #c678dd;
+  font-style: italic;
+}
+.syntax--punctuation.syntax--section.syntax--embedded {
+  color: #be5046;
+}
+.syntax--punctuation.syntax--section.syntax--method,
+.syntax--punctuation.syntax--section.syntax--class,
+.syntax--punctuation.syntax--section.syntax--inner-class {
+  color: #abb2bf;
+}
+.syntax--support.syntax--class {
+  color: #e5c07b;
+}
+.syntax--support.syntax--type {
+  color: #56b6c2;
+}
+.syntax--support.syntax--function {
+  color: #56b6c2;
+}
+.syntax--support.syntax--function.syntax--any-method {
+  color: #61afef;
+}
+.syntax--entity.syntax--name.syntax--function {
+  color: #61afef;
+}
+.syntax--entity.syntax--name.syntax--class,
+.syntax--entity.syntax--name.syntax--type.syntax--class {
+  color: #e5c07b;
+}
+.syntax--entity.syntax--name.syntax--section {
+  color: #61afef;
+}
+.syntax--entity.syntax--name.syntax--tag {
+  color: #e06c75;
+}
+.syntax--entity.syntax--other.syntax--attribute-name {
+  color: #d19a66;
+}
+.syntax--entity.syntax--other.syntax--attribute-name.syntax--id {
+  color: #61afef;
+}
+.syntax--meta.syntax--class {
+  color: #e5c07b;
+}
+.syntax--meta.syntax--class.syntax--body {
+  color: #abb2bf;
+}
+.syntax--meta.syntax--method-call,
+.syntax--meta.syntax--method {
+  color: #abb2bf;
+}
+.syntax--meta.syntax--definition.syntax--variable {
+  color: #e06c75;
+}
+.syntax--meta.syntax--link {
+  color: #d19a66;
+}
+.syntax--meta.syntax--require {
+  color: #61afef;
+}
+.syntax--meta.syntax--selector {
+  color: #c678dd;
+}
+.syntax--meta.syntax--separator {
+  background-color: #373b41;
+  color: #abb2bf;
+}
+.syntax--meta.syntax--tag {
+  color: #abb2bf;
+}
+.syntax--underline {
+  text-decoration: underline;
+}
+.syntax--none {
+  color: #abb2bf;
+}
+.syntax--invalid.syntax--deprecated {
+  color: #523d14 !important;
+  background-color: #e0c285 !important;
+}
+.syntax--invalid.syntax--illegal {
+  color: white !important;
+  background-color: #e05252 !important;
+}
+.syntax--markup.syntax--bold {
+  color: #d19a66;
+  font-weight: bold;
+}
+.syntax--markup.syntax--changed {
+  color: #c678dd;
+}
+.syntax--markup.syntax--deleted {
+  color: #e06c75;
+}
+.syntax--markup.syntax--italic {
+  color: #c678dd;
+  font-style: italic;
+}
+.syntax--markup.syntax--heading {
+  color: #e06c75;
+}
+.syntax--markup.syntax--heading .syntax--punctuation.syntax--definition.syntax--heading {
+  color: #61afef;
+}
+.syntax--markup.syntax--link {
+  color: #56b6c2;
+}
+.syntax--markup.syntax--inserted {
+  color: #98c379;
+}
+.syntax--markup.syntax--quote {
+  color: #d19a66;
+}
+.syntax--markup.syntax--raw {
+  color: #98c379;
+}
+.syntax--source.syntax--c .syntax--keyword.syntax--operator {
+  color: #c678dd;
+}
+.syntax--source.syntax--cpp .syntax--keyword.syntax--operator {
+  color: #c678dd;
+}
+.syntax--source.syntax--cs .syntax--keyword.syntax--operator {
+  color: #c678dd;
+}
+.syntax--source.syntax--css .syntax--property-name,
+.syntax--source.syntax--css .syntax--property-value {
+  color: #828997;
+}
+.syntax--source.syntax--css .syntax--property-name.syntax--support,
+.syntax--source.syntax--css .syntax--property-value.syntax--support {
+  color: #abb2bf;
+}
+.syntax--source.syntax--gfm .syntax--markup {
+  -webkit-font-smoothing: auto;
+}
+.syntax--source.syntax--gfm .syntax--link .syntax--entity {
+  color: #61afef;
+}
+.syntax--source.syntax--go .syntax--storage.syntax--type.syntax--string {
+  color: #c678dd;
+}
+.syntax--source.syntax--ini .syntax--keyword.syntax--other.syntax--definition.syntax--ini {
+  color: #e06c75;
+}
+.syntax--source.syntax--java .syntax--storage.syntax--modifier.syntax--import {
+  color: #e5c07b;
+}
+.syntax--source.syntax--java .syntax--storage.syntax--type {
+  color: #e5c07b;
+}
+.syntax--source.syntax--java .syntax--keyword.syntax--operator.syntax--instanceof {
+  color: #c678dd;
+}
+.syntax--source.syntax--java-properties .syntax--meta.syntax--key-pair {
+  color: #e06c75;
+}
+.syntax--source.syntax--java-properties .syntax--meta.syntax--key-pair > .syntax--punctuation {
+  color: #abb2bf;
+}
+.syntax--source.syntax--js .syntax--keyword.syntax--operator {
+  color: #56b6c2;
+}
+.syntax--source.syntax--js .syntax--keyword.syntax--operator.syntax--delete,
+.syntax--source.syntax--js .syntax--keyword.syntax--operator.syntax--in,
+.syntax--source.syntax--js .syntax--keyword.syntax--operator.syntax--of,
+.syntax--source.syntax--js .syntax--keyword.syntax--operator.syntax--instanceof,
+.syntax--source.syntax--js .syntax--keyword.syntax--operator.syntax--new,
+.syntax--source.syntax--js .syntax--keyword.syntax--operator.syntax--typeof,
+.syntax--source.syntax--js .syntax--keyword.syntax--operator.syntax--void {
+  color: #c678dd;
+}
+.syntax--source.syntax--json .syntax--meta.syntax--structure.syntax--dictionary.syntax--json > .syntax--string.syntax--quoted.syntax--json {
+  color: #e06c75;
+}
+.syntax--source.syntax--json .syntax--meta.syntax--structure.syntax--dictionary.syntax--json > .syntax--string.syntax--quoted.syntax--json > .syntax--punctuation.syntax--string {
+  color: #e06c75;
+}
+.syntax--source.syntax--json .syntax--meta.syntax--structure.syntax--dictionary.syntax--json > .syntax--value.syntax--json > .syntax--string.syntax--quoted.syntax--json,
+.syntax--source.syntax--json .syntax--meta.syntax--structure.syntax--array.syntax--json > .syntax--value.syntax--json > .syntax--string.syntax--quoted.syntax--json,
+.syntax--source.syntax--json .syntax--meta.syntax--structure.syntax--dictionary.syntax--json > .syntax--value.syntax--json > .syntax--string.syntax--quoted.syntax--json > .syntax--punctuation,
+.syntax--source.syntax--json .syntax--meta.syntax--structure.syntax--array.syntax--json > .syntax--value.syntax--json > .syntax--string.syntax--quoted.syntax--json > .syntax--punctuation {
+  color: #98c379;
+}
+.syntax--source.syntax--json .syntax--meta.syntax--structure.syntax--dictionary.syntax--json > .syntax--constant.syntax--language.syntax--json,
+.syntax--source.syntax--json .syntax--meta.syntax--structure.syntax--array.syntax--json > .syntax--constant.syntax--language.syntax--json {
+  color: #56b6c2;
+}
+.syntax--source.syntax--ruby .syntax--constant.syntax--other.syntax--symbol > .syntax--punctuation {
+  color: inherit;
+}
+.syntax--source.syntax--python .syntax--keyword.syntax--operator.syntax--logical.syntax--python {
+  color: #c678dd;
+}
+.syntax--source.syntax--python .syntax--variable.syntax--parameter {
+  color: #d19a66;
+}
+</style>
+  </head>
+  <body class='markdown-preview'><h1>adhesion_simulator.c について</h1>
+<p class="center">Takahiro INOUE<br>
+Last update: 2017/08/03</p>
+<p>“adhesion_simulator.c” は, 2次元セルオートマトンをもとにした腹膜癒着形成シミュレータのソースコードである.
+この文書では, “adhesion_simulator.c” のプログラムについて解説する.</p>
+<h2>adhesion_simulator の実行の前に</h2>
+<p>本プログラムでは, <a href="http://www.gnuplot.info/" title="gnuplot">gnuplot</a>を用いた描画を行っている.
+このため, 本プログラムを実行するためには, 事前にgnuplotをダウンロードし, gnuplotのパスを通しておく必要があることに注意する.</p>
+<h2>adhesion_simulator のコンパイル方法</h2>
+<p>コマンドラインで “adhesion_simulator.c” のあるディレクトリに移ったのち, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">gcc adhesion_simulator.c -o adhesion</code> などと入力することでコンパイルを行う.
+プログラム中で乱数発生の際にMersenneツイスタを利用しているため, コンパイルの際にはMersenneツイスタのヘッダファイル “MT.h” が “adhesion_simulator.c” と同じディレクトリにおいておく必要がある (なお, “MT.h” はWebからダウンロードできる).</p>
+<h2>adhesion_simulator の実行方法</h2>
+<p>コンパイルにより “adhesion.exe” を生成した後, コマンドラインで <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">adhesion (type)</code> と入力する.
+ここで, パラメータ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">(type)</code> は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">1</code>, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2</code> のいずれかであり, 番号に応じて,</p>
+<ul>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">1</code> のとき: 癒着形成のシミュレーション (癒着防止シート<strong>なし</strong>)</li>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2</code> のとき: 癒着形成のシミュレーション (癒着防止シート<strong>あり</strong>)</li>
+</ul>
+<p>が行えるようになっている.</p>
+<h2>シミュレーションについて</h2>
+<p>このシミュレーションでは, <strong>2次元セルオートマトン</strong>をもとにした癒着形成のシミュレーションを行う.
+2次元セルオートマトンとは, 有限個の状態をとる<strong>セル</strong>が2次元の格子状に配置されており, 各セルが近傍のセルの状態をもとに一定のルールで状態を変化させていく数理モデルである.
+離散的な時間で各セルの状態が一気に変化する.</p>
+<p>2次元セルオートマトンをシミュレーションに利用するにあたって, 適当な初期条件と境界条件, 変化ルールを与えた.
+以下では, これらの条件やルールについて説明する.
+なお, 以下では便宜上, 2次元座標で <span class="math"><script type="math/tex">(i,j)</script></span> に存在するセルを &quot;セル <span class="math"><script type="math/tex">(i,j)</script></span> &quot; と称すことにする.</p>
+<h3>セルの状態について</h3>
+<p>パラメータ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">(type)</code> が <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">1</code> のとき, セル状態の種類は次の5種類:</p>
+<ul>
+<li>状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code>: セルには何も存在しない.</li>
+<li>状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">1</code>: セルには<strong>中皮細胞</strong> (青色)が存在する.</li>
+<li>状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2</code>: セルには<strong>線維芽細胞</strong> (赤色)が存在する.</li>
+<li>状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">3</code>: セルには<strong>フィブリン</strong> (黄色)が存在する.</li>
+<li>状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">4</code>: セルには<strong>コラーゲン</strong> (ピンク色)が存在する.</li>
+</ul>
+<p>パラメータ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">(type)</code> が <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2</code> のとき, セル状態の種類は次の6種類:</p>
+<ul>
+<li>状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code>: セルには何も存在しない.</li>
+<li>状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">1</code>: セルには<strong>中皮細胞</strong> (青色)が存在する.</li>
+<li>状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2</code>: セルには<strong>線維芽細胞</strong> (赤色)が存在する.</li>
+<li>状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">3</code>: セルには<strong>フィブリン</strong> (黄色)が存在する.</li>
+<li>状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">4</code>: セルには<strong>コラーゲン</strong> (ピンク色)が存在する.</li>
+<li>状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">5</code>: セルには<strong>癒着防止シート</strong> (緑色)が存在する.</li>
+</ul>
+<p>また, これらの状態とは異なり, 状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2</code> のセル (i.e, 線維芽細胞) は細胞周期を模した内部状態をもつ.
+これを線維芽細胞の<strong>細胞内時間</strong>と呼ぶことにする.
+細胞周期が約22時間であること, 細胞分裂を行わない休眠状態が存在することを考慮して, 各セルの細胞内時間としては <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> ～ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">21</code> の分裂可能状態と, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">-1</code> の休眠状態の, 合わせて23個の状態を用意した.</p>
+<p><strong>Remark</strong>:<br>
+実際のプログラムでは, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> ～ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">21</code> の分裂可能状態の代わりに, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> ～ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">22*k - 1</code> の分裂可能状態を利用している (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> はある正整数).
+これは, セルオートマトンにおける1ステップの時間変化を, 現実の系における <span class="math"><script type="math/tex">\frac{1}{k}</script></span> 時間に調整するためであり, 本質的には <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> ～ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">21</code> の分裂可能状態が存在するとしたときと変わらない.
+よって以下でも, 細胞内時間は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> ～ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">21</code>, あるいは <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">-1</code> のいずれかをとるものとして説明する.</p>
+<h3>初期状態</h3>
+<p>パラメータ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">(type)</code> が <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">1</code> のとき, 初期状態は次の通り:</p>
+<ul>
+<li>上下端のセルには, <strong>線維芽細胞</strong>が存在.</li>
+<li>それ以外のセルは, <strong>フィブリン</strong>が存在.</li>
+</ul>
+<p>パラメータ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">(type)</code> が <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2</code> のとき, 初期状態は次の通り:</p>
+<ul>
+<li>上下端のセルには, <strong>線維芽細胞</strong>が存在.</li>
+<li>下端のセルに接するように, <strong>癒着防止シート</strong>が存在.</li>
+<li>それ以外のセルは, <strong>フィブリン</strong>が存在.</li>
+</ul>
+<p>また, 初期状態で存在しているセルの細胞内時間については, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> ～ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">21</code> の中から一様ランダムに決定している.</p>
+<h3>境界条件</h3>
+<p>創傷部には, 無数の線維芽細胞が存在する.
+このため, いずれのシミュレーションにおいても, 境界からは常に線維芽細胞が供給されるとした.
+新しく供給された線維芽細胞に対しても, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> ～ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">21</code> の中から一様ランダムに決定している.</p>
+<h3>セルの細胞内時間更新ルール</h3>
+<p>各ステップでは, 現在の状態がgnuplotにより描画された後, まずはセルの細胞内時間が更新される.
+この更新のルールは, 次の通りである:</p>
+<ul>
+<li>細胞内時間が <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">-1</code> の細胞については, 細胞内時間は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">-1</code> のままにする.</li>
+<li>細胞内時間が <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> ～ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">20</code> の細胞については, 細胞内時間を1だけ増加させる.</li>
+<li>細胞内時間が <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">21</code> の細胞については, あらかじめ決めておいた休眠確率 <span class="math"><script type="math/tex">P_{\text{rest}}</script></span> で休止状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">-1</code> に, 確率 <span class="math"><script type="math/tex">1 - P_{\text{rest}}</script></span> で状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> に変化させる.</li>
+</ul>
+<h3>セル状態の局所的更新ルール</h3>
+<p>各セルの細胞内時間に応じて, 各セルは隣接する上下左右四つのセル ( <strong>von Neumann近傍</strong> と呼ばれる) のいずれかに対し,</p>
+<ul>
+<li><strong>分裂</strong> (fission): 当該セルが隣接するセルに増殖する,</li>
+<li><strong>遊走</strong> (migration): 当該セルが隣接するセルに移動する,</li>
+</ul>
+<p>のいずれかを行う.
+セルが分裂 / 遊走する際は, 当該セルのvon Neumann近傍の状態をもとに分裂 / 遊走する方向を定め, その方向に分裂 / 遊走を行うことで状態を変化させていく.</p>
+<p>以下の事実が知られている:</p>
+<ul>
+<li>フィブリンやコラーゲンが存在すると, 線維芽細胞がその部分に増殖することができる.</li>
+<li>フィブリンやコラーゲンが存在しない部分には, 線維芽細胞が増殖できない.</li>
+<li>分裂 / 遊走できるのは線維芽細胞のみ (中皮細胞は癒着形成シミュレーションでは分裂 / 遊走を行わない).</li>
+</ul>
+<p>これをもとに, 次のルールを作った:</p>
+<ul>
+<li>分裂モード:
+<ul>
+<li>セル <span class="math"><script type="math/tex">(i,j)</script></span> が線維芽細胞でないとき: 何もしない.</li>
+<li>セル <span class="math"><script type="math/tex">(i,j)</script></span> が線維芽細胞であるとき: セル <span class="math"><script type="math/tex">(i,j)</script></span> のvon Neumann近傍のうち, フィブリンかコラーゲンが存在するセルに, 新しく線維芽細胞を出現させる.
+出現した線維芽細胞の細胞内時間は, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">1</code> と定める.</li>
+</ul>
+</li>
+<li>遊走モード:
+<ul>
+<li>セル <span class="math"><script type="math/tex">(i,j)</script></span> が線維芽細胞でないとき: 何もしない.</li>
+<li>セル <span class="math"><script type="math/tex">(i,j)</script></span> が線維芽細胞であるとき: セル <span class="math"><script type="math/tex">(i,j)</script></span> のvon Neumann近傍のうち, フィブリンかコラーゲンが存在するセルに, セル <span class="math"><script type="math/tex">(i,j)</script></span> の状態 (細胞内時間を含む) を移す.
+このとき, セル <span class="math"><script type="math/tex">(i,j)</script></span> にはコラーゲンを配置する.</li>
+</ul>
+</li>
+</ul>
+<h3>セル状態の大局的更新ルール</h3>
+<h4>シミュレーションタイプが <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">1</code> のとき</h4>
+<p>創傷部の治癒の速度が時間に線形であるとみなして, あらかじめ決めておいたステップ数ごとに, セル状態の局所的更新ルールが終了した後に創傷部の治癒の操作が行われる.
+具体的には, 創傷部を覆うように周辺から1セルずつ中皮細胞に置き換わっていく.</p>
+<p>またこれと同時に, 中皮細胞がある列に存在しているフィブリンはすべて分解され, 何もないセルに置き換わる.</p>
+<h4>シミュレーションタイプが <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2</code> のとき</h4>
+<p>セル状態の局所的更新ルールが終了した後は毎ステップ, 癒着防止シートの分解の操作が行われる.
+癒着防止シートの分解は列ごとに確率的に行われる.</p>
+<p>癒着防止シートの分解の規則としては次に示す2通り用意してあり, これは後述の定数を変化させることで選択できるようになっている.</p>
+<ul>
+<li>癒着防止シートの分解確率が位置によらず等しい.
+あらかじめ確率 <span class="math"><script type="math/tex">P_{\text{deg}}</script></span> を設定しておき, 癒着防止シートの存在する列すべてに対し, この確率 <span class="math"><script type="math/tex">P_{\text{deg}}</script></span> で分解するようにする.</li>
+<li>癒着防止シートの分解確率が位置によって異なり, 創傷部のシートは治癒した部位のシートに比べて分解しにくくしておく.
+加えて, 創傷部の中心 (この列を第 <span class="math"><script type="math/tex">m</script></span> 列とする) に近づくにつれて, 分解確率が下がるようにする.
+具体的には以下の通り.<br>
+上記と同様に, あらかじめ確率 <span class="math"><script type="math/tex">P_{\text{deg}}</script></span> を設定しておく.
+癒着防止シートが存在する列 (第 <span class="math"><script type="math/tex">k</script></span> 列 とする) すべてに対して, 次のようにシートの分解を行う.
+(<span class="math"><script type="math/tex">w</script></span> を創傷部に存在するセル数, すなわち創傷部のサイズとする.)
+<ul>
+<li>中皮細胞が存在する場合: 確率 <span class="math"><script type="math/tex">P_{\text{deg}}</script></span> で分解させる.</li>
+<li>中皮細胞が存在しない (i.e., シートの創傷部カバー部分) 場合: 次の確率で分解させる.</li>
+</ul>
+<span class="math"><script type="math/tex; mode=display">\frac{P_{\text{deg}}}{2}\frac{(k-m)^2}{(w/2)^2}.
+</script></span>
+</li>
+</ul>
+<p>癒着防止シートの分解の操作を行った後は, シミュレーションタイプ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">1</code> と同様に創傷部の治癒の操作が行われる.</p>
+<p><strong>Remark</strong>:<br>
+中皮細胞が存在しない場合の確率の式は, 創傷部の中心に近づくにつれて分解確率が下がるように, ヒューリスティックに選んでいる.
+なお, 分母の <span class="math"><script type="math/tex">(w/2)^2</script></span> は正規化のための項である.</p>
+<h2>癒着の判定について</h2>
+<p>シミュレーションでは, 癒着が起きた場合にシミュレーションを停止し, 現実の系で何時間相当で癒着が生じたかが表示されるようになっている.
+癒着を起こしたか否かを判断する方法について述べる.</p>
+<p>まず, 癒着を起こした状態がどのようなものであるかを定義する.
+線維芽細胞か, コラーゲンのあるセルから始めて, セル間を移動していくことを考える.
+1ステップの移動では, セルのvon Neumann近傍のいずれかに移動できるものとする.
+線維芽細胞か, コラーゲンのセル <span class="math"><script type="math/tex">(i,j)</script></span> から始めて, 線維芽細胞のセルかコラーゲンのセルのみを移動していくことで, 何ステップかかけてたどり着くことができるセルは, セル <span class="math"><script type="math/tex">(i,j)</script></span> から<strong>到達可能</strong>なセルであるということにする.
+シミュレーション領域の下端のあるセル (一般性を失わず, セル <span class="math"><script type="math/tex">(0,0)</script></span> としてよい) から上端にあるセル (これもセル <span class="math"><script type="math/tex">(0, N-1)</script></span> と指定できる) に到達可能な場合, 癒着が生じていると定める.</p>
+<p>癒着が生じていることを判定するアルゴリズムとして, クラスター同定のアルゴリズムを利用する (<a href="http://www-fcs.acs.i.kyoto-u.ac.jp/~harada/OC/section_percolation.html">参考: オンラインで学ぶ「モンテカルロ法」</a>).
+つまり, 初期状態の線維芽細胞の集まりを異なるクラスターと定めておき, ステップを経ていくうちに二つのクラスターが同じであると判定されることがあれば「癒着した」とみなすのである.</p>
+<p>以下では, クラスター番号, クラスターの合併方法などについて述べる.</p>
+<h3>セルの番号付け</h3>
+<p>シミュレーション領域のセルすべてに次のように番号を付ける:<br>
+左下のセルを <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> 番目とし, そこから右のセルを順に <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">1</code> 番目, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2</code> 番目, …, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M-1</code> 番目と番号付ける.
+<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> 番目のセルの上のセルを <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M</code> 番目とし, そこから右のセルを順に <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M + 1</code> 番目, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M + 2</code> 番目, …, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2*M - 1</code> 番目と番号付ける.
+このように番号付けを行うことで, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> から <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">N*M - 1</code> までの番号をセルに割り当てる.</p>
+<p>この番号付けによると, セル <span class="math"><script type="math/tex">(i,j)</script></span> の番号は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">i + j*M</code> <span class="math"><script type="math/tex">(i = 0, \dots, M-1;~ j = 0, \dots, N-1)</script></span> と計算できる (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Dim1Index</code> 関数).</p>
+<h3>クラスター番号のつけ方</h3>
+<p>各クラスターにはあらかじめ番号を付けておき, この番号により異なる二つのセルが同じクラスターに所属するか否かを判定することにする.</p>
+<p>初期状態では, 下端の線維芽細胞の集まりはすべて番号 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> のクラスターに, 上端の線維芽細胞の集まりはすべて番号 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M*(N-1)</code> のクラスターに属すると設定する.
+残りのセルはそれ単独でクラスターを形成し, その番号が上記の番号付けと一致するものとする.
+つまり, 初期状態では, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code>, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M</code>, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M + 1</code>, …, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M*(N-1) - 1</code>, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M*(N-1)</code> の番号のついたクラスターが存在している (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">InitializeCluster</code> 関数).</p>
+<p>セル <span class="math"><script type="math/tex">(i_1, j_1)</script></span> とセル <span class="math"><script type="math/tex">(i_2, j_2)</script></span> の所属するクラスターを合併する場合は, 一方のセルの所属するクラスター番号を, 他方のセルのクラスター番号に更新すればよい.</p>
+<h3>クラスターの合併条件</h3>
+<p>セル <span class="math"><script type="math/tex">(i,j)</script></span> から線維芽細胞が分裂 / 遊走したセル <span class="math"><script type="math/tex">(x,y)</script></span> は, 明らかにセル <span class="math"><script type="math/tex">(i,j)</script></span> から到達可能である.
+もし, 下端 / 上端からセル <span class="math"><script type="math/tex">(i,j)</script></span> に到達可能であれば, セル <span class="math"><script type="math/tex">(x,y)</script></span> にも到達可能である.
+分裂 / 遊走が起こった場合は, セル <span class="math"><script type="math/tex">(i,j)</script></span> とセル <span class="math"><script type="math/tex">(x,y)</script></span> のクラスターを合併するようにすると, 下端 / 上端の属するクラスターには, そのステップまでに下端 / 上端から到達可能となったことのあるセルがすべて属することになる.
+よって, 下端と上端の属するクラスターの番号が一致したとき, 下端から上端まで到達可能であるため, 癒着が生じていると判定することができる.</p>
+<p><strong>Remark</strong>:<br>
+「下端と上端の属するクラスターの番号が一致する ⇒ 癒着が生じている」は成立するが, 逆は必ずしも正しくない.
+癒着が生じていても, 下端と上端の属するクラスター番号が異なる状態は起こりうる (癒着が生じ, かつクラスターをまたぐように分裂 / 遊走が起こった場合に, クラスター番号が一致する).</p>
+<h2>定義されている定数の一覧</h2>
+<p>定義されている定数は次の通りである.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">TYPES</code></h3>
+<p>シミュレーションタイプの数である.
+現在は, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">TYPES = 2</code> となっている.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M</code></h3>
+<p>シミュレーションを行うエリアの幅である.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M = 100</code> と設定してある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">N</code></h3>
+<p>シミュレーションを行うエリアの高さである.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">N = 120</code> と設定してある.
+<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M*N</code> の長方形領域でシミュレーションを行うことができる.</p>
+<p><strong>Remark</strong>:<br>
+領域の上下端の状態は固定されているため, 実際シミュレーションが行われているのは上下端以外の <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M*(N-2)</code> の領域である.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">WOUND</code></h3>
+<p>初期状態における創傷部のサイズである.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">WOUND = M</code> と設定してある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">SHEET</code></h3>
+<p>シミュレーションタイプ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2</code> における, 癒着防止シートの厚みである.
+シミュレーションの初期状態では, すべての列に対して <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">SHEET</code> で指定されたセル数の癒着防止シートが配置される.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">SHEET = 10</code> と設定してある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">P_REST</code></h3>
+<p>細胞の休眠確率 <span class="math"><script type="math/tex">P_{\text{rest}}</script></span> である.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">P_REST = 0.05</code> と設定してある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">P_DEG</code></h3>
+<p>シミュレーションタイプ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2</code> における, 癒着防止シートの分解確率 <span class="math"><script type="math/tex">P_{\text{deg}}</script></span> である.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">P_DEG = 0.01</code> と設定してある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">P_FRONT</code></h3>
+<p>局所的更新ルールにおける, 癒着形成方向に向かって分裂 / 遊走する確率 <span class="math"><script type="math/tex">P_{\text{front}}</script></span> である.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">P_FRONT = 0.5</code> と設定してある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">P_SIDE</code></h3>
+<p>局所的更新ルールにおける, 横方向 (x軸方向) に向かって分裂 / 遊走する確率 <span class="math"><script type="math/tex">P_{\text{side}}</script></span> である.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">P_SIDE = 0.2</code> と設定してある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">P_REAR</code></h3>
+<p>局所的更新ルールにおける, 癒着形成方向の逆方向に向かって分裂 / 遊走する確率 <span class="math"><script type="math/tex">P_{\text{rear}}</script></span> である.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">P_REAR = 0.1</code> と設定してある.</p>
+<p><strong>Remark</strong>:<br>
+<span class="math"><script type="math/tex">P_{\text{front}} + 2P_{\text{side}} + P_{\text{rear}} = 1</script></span> となるように値を設定するよう注意する.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">N_STEPS_PER_H</code></h3>
+<p>実際の系で1時間に相当するステップ数 <span class="math"><script type="math/tex">n_{\text{step}}</script></span> を表す.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">N_STEPS_PER_H = 3</code> と設定してある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">RECOVERY_RATE</code></h3>
+<p>2セル分の治癒にかかるステップ数を表す.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">RECOVERY_RATE = 1*N_STEPS_PER_H</code> (実際の系で1時間相当) と設定してある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CYCLE_PERIOD</code></h3>
+<p>細胞内時間の周期を表す.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CYCLE_PERIOD = 22*N_STEPS_PER_H</code> (実際の系で22時間相当) と設定してある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">MAX_T</code></h3>
+<p>シミュレーションを行うステップ数である.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">MAX_T = RECOVERY_RATE*(WOUND/2)</code> (創傷部が完全に治癒するまでにかかるステップ数) と設定してある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">INIT_INTERVAL</code></h3>
+<p>gnuplotで初期状態をプロットした後の待機時間 [s].
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">INIT_INTERVAL = 5</code> と設定してある.
+あまり短すぎると, はじめの数ステップ分の状態が描画されない場合がある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">INTERVAL</code></h3>
+<p>gnuplotで初期状態以降の状態をプロットした後の待機時間 [s].
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">INTERVAL = 0.25</code> と設定してある.
+あまり短すぎると, 状態がうまく描画されない場合がある.
+また, gif画像を保存する場合 (後述) は, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">INTERVAL</code> の値が小さすぎると, 画像がうまく描画されないことに注意 (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">INTERVAL = 1</code> 程度にしておけばある程度大丈夫).</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CENTER_SOLID</code></h3>
+<p>シミュレーションタイプ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2</code> において, 癒着防止シートの分解するルールを指定するための定数.
+<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CENTER_SOLID = 1</code> であれば, 創傷部の中心の分解確率が低くなるように設定される.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CENTER_SOLID = 0</code> (等確率で分解する) としてある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">PIC_FLAG</code></h3>
+<p>gnuplotでgif画像を生成するかどうかを指定するための定数.
+gif画像の生成のためには, あらかじめ Plain Text で以下の内容を記述し, これを “<a href="http://savegif.gp">savegif.gp</a>” という名称で “adhesion.exe” と同じディレクトリに保存しておくこと:</p>
+<pre class="editor-colors lang-text"><div class="line"><span class="syntax--text syntax--plain"><span class="syntax--meta syntax--paragraph syntax--text"><span>if&nbsp;(exists(&quot;name&quot;)){</span></span></span>
+</div><div class="line"><span class="syntax--text syntax--plain"><span>&nbsp;&nbsp;</span><span class="syntax--meta syntax--paragraph syntax--text"><span>filename&nbsp;=&nbsp;sprintf(&quot;%s.gif&quot;,name);</span></span></span>
+</div><div class="line"><span class="syntax--text syntax--plain"><span class="syntax--meta syntax--paragraph syntax--text"><span>&nbsp;&nbsp;#&nbsp;pause&nbsp;-1&nbsp;filename.&quot;で保存します.&quot;</span></span></span>
+</div><div class="line"><span class="syntax--text syntax--plain"><span class="syntax--meta syntax--paragraph syntax--text"><span>&nbsp;&nbsp;set&nbsp;terminal&nbsp;gif&nbsp;enhanced</span></span></span>
+</div><div class="line"><span class="syntax--text syntax--plain"><span class="syntax--meta syntax--paragraph syntax--text"><span>&nbsp;&nbsp;set&nbsp;output&nbsp;filename</span></span></span>
+</div><div class="line"><span class="syntax--text syntax--plain"><span class="syntax--meta syntax--paragraph syntax--text"><span>&nbsp;&nbsp;set&nbsp;colorsequence&nbsp;classic</span></span></span>
+</div><div class="line"><span class="syntax--text syntax--plain"><span class="syntax--meta syntax--paragraph syntax--text"><span>&nbsp;&nbsp;pause&nbsp;1</span></span></span>
+</div><div class="line"><span class="syntax--text syntax--plain"><span class="syntax--meta syntax--paragraph syntax--text"><span>&nbsp;&nbsp;replot</span></span></span>
+</div><div class="line"><span class="syntax--text syntax--plain"><span class="syntax--meta syntax--paragraph syntax--text"><span>&nbsp;&nbsp;set&nbsp;output</span></span></span>
+</div><div class="line"><span class="syntax--text syntax--plain"><span class="syntax--meta syntax--paragraph syntax--text"><span>&nbsp;&nbsp;set&nbsp;terminal&nbsp;wxt</span></span></span>
+</div><div class="line"><span class="syntax--text syntax--plain"><span class="syntax--meta syntax--paragraph syntax--text"><span>}else{</span></span></span>
+</div><div class="line"><span class="syntax--text syntax--plain"><span>&nbsp;&nbsp;</span><span class="syntax--meta syntax--paragraph syntax--text"><span>pause&nbsp;-1&nbsp;&quot;nameを指定して下さい.&nbsp;name=&#39;ファイル名&#39;&quot;</span></span></span>
+</div><div class="line"><span class="syntax--text syntax--plain"><span class="syntax--meta syntax--paragraph syntax--text"><span>}</span></span></span>
+</div></pre>
+<p><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">PIC_FLAG = 1</code> であれば, 毎ステップの状態をgif画像に描画するように設定される.
+なお, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">PIC_FLAG = 1</code> の際は, ディスプレイ上での各状態の色が変化するが, 画像データでは <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">PIC_FLAG = 0</code> のときの色に近くなるように設定してある.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">PIC_FLAG = 0</code> (gif画像の生成をしない) としてある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">TMPFILE</code></h3>
+<p>gnuplotで描画するための中間ファイルの名称を指定する.
+デフォルト値は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">TMPFILE = &quot;tempfile.tmp&quot;</code> と設定してある.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">GNUPLOT</code></h3>
+<p>gnuplotを呼び出すための定数.
+gnuplotにパスが通っていれば <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">GNUPLOT = &quot;gnuplot&quot;</code> としておけばよい.</p>
+<h2>定義されているグローバル変数の一覧</h2>
+<p>定義されているグローバル変数は次の通りである.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">type_number</code></h3>
+<p>コマンドラインから入力されたシミュレーションタイプ番号を保持するための整数型の変数.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">state_size</code></h3>
+<p>シミュレーションにおけるセル状態の数 (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">type_number</code> によって異なる) を保持するための整数型の変数.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">pipe</code></h3>
+<p>ファイルポインタ.
+gnuplotに渡す用のパイプ.</p>
+<h2>定義されている関数の一覧</h2>
+<p>定義されている関数は次の通りである.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">main(int argc, char *argv[])</code></h3>
+<p>メイン関数である.
+次の挙動を行うようになっている.</p>
+<ol>
+<li>コマンドライン引数が正しく与えられているかチェック. 与えられていない場合は, エラーとして終了する.</li>
+<li>コマンドライン引数を, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">type_number</code> に代入.
+この値から, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">state_size</code> にこのシミュレーションタイプにおける状態数を代入 (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">NumberOfStates</code> 関数).</li>
+<li>乱数のシードを現在時刻から発生させる.</li>
+<li>初期条件を <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M*N</code> の2次元配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">world</code> に反映させる (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">InitializeWorld</code> 関数).</li>
+<li>初期の内部状態を <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M*N</code> の2次元配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cell_time</code> に反映させる (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">InitializeCellTime</code> 関数).</li>
+<li>クラスター情報を, 長さ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">M*N</code> の1次元配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cluster</code> に反映させる (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">InitializeCluster</code> 関数).</li>
+<li>gnuplot の表示の設定を行う (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">PlotConfig</code> 関数).</li>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">t = 0</code> とする.</li>
+<li>現在の配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">world</code> の内容を一時ファイル “tempfile.tmp” に記録する (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">PutWorld</code> 関数).</li>
+<li>“tempfile.tmp” の内容を gnuplot で表示する (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Draw</code> 関数, あるいは <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">GifDraw</code> 関数).</li>
+<li>もし癒着が起きていたら, 15. へ.
+起きていなければ 12. へ.</li>
+<li>配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cell_time</code> を更新する (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CellTimeProgress</code> 関数).</li>
+<li>配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">world</code> を更新し, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">t</code> を1増加させる (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">NextT</code> 関数).</li>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">t &lt; MAX_T</code> ならば 9. へ戻る.</li>
+<li>癒着が起きたか否かをコマンドラインに表示し, プログラム終了.</li>
+</ol>
+<p>なお, プログラム内で用いる乱数としては, Mersenneツイスターにより発生させた <span class="math"><script type="math/tex">[0,1)</script></span> 区間の一様乱数を用いている (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">genrand_real2</code> 関数).</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">InitializeWorld(int world[][N])</code></h3>
+<p>void型の関数.
+<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">type_number</code> に応じた初期状態を <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">world</code> に格納する.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">InitializeCellTime(int cell_time[][N])</code></h3>
+<p>void型の関数.
+<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">type_number</code> に応じて初期の細胞内時間を <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cell_time</code> に格納する.</p>
+<p>現在は, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">type_number</code> によらず同じ挙動をするようにしてあり, 初期状態で線維芽細胞が存在する部分に細胞内時間を割り振っている (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CellTimeGenerator</code> 関数).</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">InitializeCluster(int cluster[])</code></h3>
+<p>void型の関数.
+<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">type_number</code> に応じた初期のクラスタ番号の情報を <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cluster</code> に格納する.</p>
+<p>現在は, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">type_number</code> によらず同じ挙動をするようにしてあり, 下端の線維芽細胞の集まりと上端の線維芽細胞の集まりをそれぞれクラスタリングしている.
+その他のセルは, それぞれ単独のクラスターになるように, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">-1</code> を <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cluster</code> に格納している.
+クラスター番号は下端をセル <span class="math"><script type="math/tex">(0,0)</script></span> のIDに, 上端をセル <span class="math"><script type="math/tex">(0, N-1)</script></span> のIDに設定している (IDは関数 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Dim1Index</code> で与える).</p>
+<p>クラスタリングの方法については, 後述のクラスタリング関連の関数 (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">ClusterNumber</code> 関数, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">MergeCluster</code> 関数) で詳しく説明する.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CellTimeProgress(int cell_time[][N])</code></h3>
+<p>void型の関数.
+細胞内時間の更新を行う.
+更新ルールは上述のとおりである.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">NextT(int world[][N], int cell_time[][N], int cluster[], int t)</code></h3>
+<p>void型の関数.
+すべてのセルの状態を更新する.
+挙動はほとんど上述のとおりであるが, 以下で再度簡単に述べる.</p>
+<ol>
+<li>中身を0で初期化した二次元配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">next_world, next_cell_time</code> を用意し, これらに <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">world, cell_time</code> の内容をコピーする.</li>
+<li>全セルに対して <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CalcNext</code> 関数で次のステップでの状態を計算し, 配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">next_world</code> に保存する.</li>
+<li>上下端のセル (線維芽細胞) について <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">world</code> の中身をそのまま <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">next_world</code> に移す.</li>
+</ol>
+<ul>
+<li>これにより, ステップを経ても上下端のセルは常に線維芽細胞であるようにしている.
+また, このとき同時に <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">next_cell_time</code> に <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CellTimeGenerator</code> 関数で細胞内時間を新しく割り振る.</li>
+</ul>
+<ol start="4">
+<li>癒着防止シートが存在するのであれば, シートの分解操作を行う (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">SheetDegradation</code> 関数).</li>
+<li>創傷部の治癒の操作を行う (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">WoundRecovery</code> 関数).</li>
+<li>二次元配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">next_world, next_cell_time</code> の内容を <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">world, cell_time</code> にコピーして終了.</li>
+</ol>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">SheetDegradation(int world[][N], int next_world[][N], int t)</code></h3>
+<p>void型の関数.
+癒着防止シートの分解の操作を行う.
+分解のルールは, 上述の通りである.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">WoundRecovery(int next_world[][N], int next_cell_time[][N], int t)</code></h3>
+<p>void型の関数.
+創傷部の治癒の操作を行う.
+治癒のルールは, 上述の通りである.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CalcNext(int world[][N], int next_world[][N], int cell_time[][N], int next_cell_time[][N], int cluster[], int i, int j)</code></h3>
+<p>void型の関数.
+セル <span class="math"><script type="math/tex">(i,j)</script></span> の状態をもとにして, 次のステップにおけるセル <span class="math"><script type="math/tex">(i,j)</script></span> およびそのvon Neumann近傍を計算する関数.
+<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">type_number</code> と現在のセルの細胞内時間に応じて, 異なるルールが適用される.</p>
+<p>関数の挙動を以下に示す.</p>
+<h4>1. セル <span class="math"><script type="math/tex">(i,j)</script></span> のvon Neumann近傍のチェック</h4>
+<p>セル <span class="math"><script type="math/tex">(i,j)</script></span> のvon Neumann近傍の状態を保存するための1次元配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">state[4]</code> を用意し, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">StateCheck</code> 関数により, この中身を</p>
+<pre class="editor-colors lang-c"><div class="line"><span class="syntax--source syntax--c"><span>state</span><span class="syntax--punctuation syntax--definition syntax--begin syntax--bracket syntax--square syntax--c"><span>[</span></span><span class="syntax--constant syntax--numeric syntax--c"><span>0</span></span><span class="syntax--punctuation syntax--definition syntax--end syntax--bracket syntax--square syntax--c"><span>]</span></span><span>&nbsp;</span><span class="syntax--keyword syntax--operator syntax--assignment syntax--c"><span>=</span></span><span>&nbsp;world</span><span class="syntax--punctuation syntax--definition syntax--begin syntax--bracket syntax--square syntax--c"><span>[</span></span><span>i</span><span class="syntax--keyword syntax--operator syntax--c"><span>-</span></span><span class="syntax--constant syntax--numeric syntax--c"><span>1</span></span><span class="syntax--punctuation syntax--definition syntax--end syntax--bracket syntax--square syntax--c"><span>]</span></span><span class="syntax--punctuation syntax--definition syntax--begin syntax--bracket syntax--square syntax--c"><span>[</span></span><span>j</span><span class="syntax--punctuation syntax--definition syntax--end syntax--bracket syntax--square syntax--c"><span>]</span></span><span class="syntax--punctuation syntax--terminator syntax--statement syntax--c"><span>;</span></span></span>
+</div><div class="line"><span class="syntax--source syntax--c"><span>state</span><span class="syntax--punctuation syntax--definition syntax--begin syntax--bracket syntax--square syntax--c"><span>[</span></span><span class="syntax--constant syntax--numeric syntax--c"><span>1</span></span><span class="syntax--punctuation syntax--definition syntax--end syntax--bracket syntax--square syntax--c"><span>]</span></span><span>&nbsp;</span><span class="syntax--keyword syntax--operator syntax--assignment syntax--c"><span>=</span></span><span>&nbsp;world</span><span class="syntax--punctuation syntax--definition syntax--begin syntax--bracket syntax--square syntax--c"><span>[</span></span><span>i</span><span class="syntax--punctuation syntax--definition syntax--end syntax--bracket syntax--square syntax--c"><span>]</span></span><span class="syntax--punctuation syntax--definition syntax--begin syntax--bracket syntax--square syntax--c"><span>[</span></span><span>j</span><span class="syntax--keyword syntax--operator syntax--c"><span>+</span></span><span class="syntax--constant syntax--numeric syntax--c"><span>1</span></span><span class="syntax--punctuation syntax--definition syntax--end syntax--bracket syntax--square syntax--c"><span>]</span></span><span class="syntax--punctuation syntax--terminator syntax--statement syntax--c"><span>;</span></span></span>
+</div><div class="line"><span class="syntax--source syntax--c"><span>state</span><span class="syntax--punctuation syntax--definition syntax--begin syntax--bracket syntax--square syntax--c"><span>[</span></span><span class="syntax--constant syntax--numeric syntax--c"><span>2</span></span><span class="syntax--punctuation syntax--definition syntax--end syntax--bracket syntax--square syntax--c"><span>]</span></span><span>&nbsp;</span><span class="syntax--keyword syntax--operator syntax--assignment syntax--c"><span>=</span></span><span>&nbsp;world</span><span class="syntax--punctuation syntax--definition syntax--begin syntax--bracket syntax--square syntax--c"><span>[</span></span><span>i</span><span class="syntax--keyword syntax--operator syntax--c"><span>+</span></span><span class="syntax--constant syntax--numeric syntax--c"><span>1</span></span><span class="syntax--punctuation syntax--definition syntax--end syntax--bracket syntax--square syntax--c"><span>]</span></span><span class="syntax--punctuation syntax--definition syntax--begin syntax--bracket syntax--square syntax--c"><span>[</span></span><span>j</span><span class="syntax--punctuation syntax--definition syntax--end syntax--bracket syntax--square syntax--c"><span>]</span></span><span class="syntax--punctuation syntax--terminator syntax--statement syntax--c"><span>;</span></span></span>
+</div><div class="line"><span class="syntax--source syntax--c"><span>state</span><span class="syntax--punctuation syntax--definition syntax--begin syntax--bracket syntax--square syntax--c"><span>[</span></span><span class="syntax--constant syntax--numeric syntax--c"><span>3</span></span><span class="syntax--punctuation syntax--definition syntax--end syntax--bracket syntax--square syntax--c"><span>]</span></span><span>&nbsp;</span><span class="syntax--keyword syntax--operator syntax--assignment syntax--c"><span>=</span></span><span>&nbsp;world</span><span class="syntax--punctuation syntax--definition syntax--begin syntax--bracket syntax--square syntax--c"><span>[</span></span><span>i</span><span class="syntax--punctuation syntax--definition syntax--end syntax--bracket syntax--square syntax--c"><span>]</span></span><span class="syntax--punctuation syntax--definition syntax--begin syntax--bracket syntax--square syntax--c"><span>[</span></span><span>j</span><span class="syntax--keyword syntax--operator syntax--c"><span>-</span></span><span class="syntax--constant syntax--numeric syntax--c"><span>1</span></span><span class="syntax--punctuation syntax--definition syntax--end syntax--bracket syntax--square syntax--c"><span>]</span></span><span class="syntax--punctuation syntax--terminator syntax--statement syntax--c"><span>;</span></span></span>
+</div></pre>
+<p>とする (シミュレーション領域の境界に位置するセルの扱い等は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">StateCheck</code> 関数の項を参照のこと).
+セル <span class="math"><script type="math/tex">(i,j)</script></span> の左のセルから, 時計回りに番号付けをしている.</p>
+<ul>
+<li>便宜上, 以下ではセル <span class="math"><script type="math/tex">(i,j)</script></span> のvon Neumann近傍の各セルを番号で次のように呼ぶことにする.
+<ul>
+<li>0番目の近傍: セル <span class="math"><script type="math/tex">(i,j)</script></span> の左のセル. 状態は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">state[0]</code>.</li>
+<li>1番目の近傍: セル <span class="math"><script type="math/tex">(i,j)</script></span> の上のセル. 状態は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">state[1]</code>.</li>
+<li>2番目の近傍: セル <span class="math"><script type="math/tex">(i,j)</script></span> の右のセル. 状態は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">state[2]</code>.</li>
+<li>3番目の近傍: セル <span class="math"><script type="math/tex">(i,j)</script></span> の下のセル. 状態は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">state[3]</code>.</li>
+</ul>
+</li>
+</ul>
+<p>この後, 各状態がVon Neumann近傍にいくつ存在するかを, 1次元配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">n_state[state_size]</code> に保存する (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">StateCount</code> 関数).</p>
+<h4>2. ルールの決定</h4>
+<p>セル <span class="math"><script type="math/tex">(i,j)</script></span> に対して, ルール <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">1</code> (分裂), ルール <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">2</code> (遊走) のどちらを行うかを, セル <span class="math"><script type="math/tex">(i,j)</script></span> の細胞内時間により決める.
+もし, セル <span class="math"><script type="math/tex">(i,j)</script></span> の細胞内時間が <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> ～ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CYCLE_PERIOD - 1</code> の間に存在しない (i.e., <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">-1</code> となっている) のであれば, 以降の操作をすることなくこの時点で終了する.</p>
+<h4>3. ルールの適用</h4>
+<p>2.で決定されたルールを適用する.
+分裂が行われる場合は, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Fission</code> 関数が, 遊走が行われる場合は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Migration</code> 関数が呼び出される.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">StateCheck(int world[][N], int state[], int i, int j)</code></h3>
+<p>void型の関数.
+セル <span class="math"><script type="math/tex">(i,j)</script></span> のvon Neumann近傍の状態を <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">world</code> から取得し, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">state</code> に保存する.</p>
+<p>セル <span class="math"><script type="math/tex">(i,j)</script></span> がシミュレーション領域の境界に位置する場合, von Neumann近傍の <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">world</code> の中身を参照できない.
+このため, 参照できない近傍には何もないとみなし, この近傍の状態を <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> とみなしている.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">NumberOfStates(void)</code></h3>
+<p>int型の関数.
+<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">type_number</code> の値に応じて, 各シミュレーションタイプで用いる状態の数を返す.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">StateCount(int state[], int n_state[])</code></h3>
+<p>void型の関数.
+<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">n_state[l]</code> に, セル <span class="math"><script type="math/tex">(i,j)</script></span> のvon Neumann近傍にある状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">l</code> の数を保存する.</p>
+<p>まず, 1次元配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">n_state</code> の中身を0で初期化する.</p>
+<p>次に, セル <span class="math"><script type="math/tex">(i,j)</script></span> のvon Neumann近傍の状態を確認し, 状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">l</code> のセルの個数を計算し, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">n_state[l]</code> に保存する.
+この計算は, 次のアルゴリズムで行われる.</p>
+<ol>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k = 0</code> とする.</li>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍を見る.<br>
+a. <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">l = 0</code> とする.<br>
+b. もし <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍の状態が <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">l</code> であるなら, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">n_state[l]</code> の中身を1増加させて, 3.へ進む.<br>
+c. <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">l</code> を1増やして b. に戻る.</li>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k = 3</code> であれば終了. そうでないなら, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> を1増やして1.に戻る.</li>
+</ol>
+<p><strong>Remark</strong>:<br>
+2-b.で <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">state[k] == l</code> が成り立った時点でa. から c. のループを抜けているが, これは <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目のセルの状態が判明して, これ以上 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目のセルの状態が何かを確認する必要がないから.<br>
+なお, 確認するべき周囲のセルの数が固定されていることと, セルのとりうる状態が決まっていることから, 1. から3. のループ, および a. から c. のループはforループで書ける.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Fission(int world[][N], int next_world[][N], int next_cell_time[][N], int state[], int n_state[], int cluster[], int i, int j)</code></h3>
+<p>void型の関数.
+セル <span class="math"><script type="math/tex">(i,j)</script></span> が線維芽細胞である場合に, von Neumann近傍のいずれかのセルに分裂する.
+大まかな挙動は上述の通りであるが, 以下で詳述する.</p>
+<h4>1. 分裂可能な近傍の数を計算</h4>
+<p>線維芽細胞は, フィブリン, あるいはコラーゲンのあるセルに対して分裂可能であるから, von Neumann近傍にフィブリン, コラーゲンのあるセルがいくつあるかを計算する.
+von Neumann近傍にフィブリン, コラーゲンのあるセルが存在しないならば, 以降の計算は行うことなくここで終了する.</p>
+<h4>2. 確率の生成と乱数の発生</h4>
+<p><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">ProbabilityGenerator</code> 関数により, von Neumann近傍の各セルに確率を割り振る.
+割り振った値を, 1次元配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">prob</code> に格納する (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍の確率は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">prob[k]</code> に格納される).
+また, <span class="math"><script type="math/tex">[0,1)</script></span> 区間の一様乱数を発生させておく.
+これを <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">r</code> と表す.</p>
+<h4>3. 分裂方向の決定</h4>
+<p>von Neumann近傍のどのセルに対して分裂を行うか, あるいは行わないかを2.で発生させた乱数 <span class="math"><script type="math/tex">r</script></span> を用いて決定する.
+次のアルゴリズムで決定する:</p>
+<ol>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k = 0</code> とし, 累積確率を <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cumulative_p = 0</code> と初期化する.</li>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍を見る.<br>
+a. <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍の座標 <span class="math"><script type="math/tex">(x,y)</script></span> を取得し, これを <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">x</code>, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">y</code> に保存する.<br>
+b. もし, 座標 <span class="math"><script type="math/tex">(x,y)</script></span> にセルが存在しない (これはセル <span class="math"><script type="math/tex">(i,j)</script></span> が境界上に存在する場合に起こりうる) ときは, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> を1増やして2.に戻る (i.e., 次の方向をみる).<br>
+c. もし <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍がフィブリン, コラーゲン以外であれば, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> を1増やして2.に戻る (i.e., 次の方向をみる).<br></li>
+<li>累積確率 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cumulative_p</code> に <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍の確率 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">prob[k]</code> を加える.</li>
+<li>もし, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">r &lt; cumulative_p</code> となるのであれば, 次を実行する:<br>
+次のステップにおける <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍は線維芽細胞とし, その細胞内時間を <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">1</code> に設定する.<br>
+その後, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">MergeCluster</code> 関数により, セル <span class="math"><script type="math/tex">(i,j)</script></span> の属するクラスターと <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍の属するクラスターを合併し, アルゴリズムを終了する.</li>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> を1増やして2.に戻る (i.e., 次の方向をみる).</li>
+</ol>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Migration(int world[][N], int next_world[][N], int cell_time[][N], int next_cell_time[][N], int state[], int n_state[], int cluster[], int i, int j)</code></h3>
+<p>void型の関数.
+セル <span class="math"><script type="math/tex">(i,j)</script></span> が線維芽細胞である場合に, von Neumann近傍のいずれかのセルに遊走する.
+大まかな挙動は上述の通りであり, ほとんどが <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Fission</code> 関数と同じ挙動である.
+以下の1, 2は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Fission</code> 関数と挙動が完全に同じであるが, 3.のアルゴリズムにおける4.の挙動のみが変わっている.</p>
+<h4>1. 遊走可能な近傍の数を計算</h4>
+<p>線維芽細胞は, フィブリン, あるいはコラーゲンのあるセルに対して遊走可能であるから, von Neumann近傍にフィブリン, コラーゲンのあるセルがいくつあるかを計算する.
+von Neumann近傍にフィブリン, コラーゲンのあるセルが存在しないならば, 以降の計算は行うことなくここで終了する.</p>
+<h4>2. 確率の生成と乱数の発生</h4>
+<p><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">ProbabilityGenerator</code> 関数により, von Neumann近傍の各セルに確率を割り振る.
+割り振った値を, 1次元配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">prob</code> に格納する (<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍の確率は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">prob[k]</code> に格納される).
+また, <span class="math"><script type="math/tex">[0,1)</script></span> 区間の一様乱数を発生させておく.
+これを <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">r</code> と表す.</p>
+<h4>3. 遊走方向の決定</h4>
+<p>von Neumann近傍のどのセルに対して分裂を行うか, あるいは行わないかを2.で発生させた乱数 <span class="math"><script type="math/tex">r</script></span> を用いて決定する.
+次のアルゴリズムで決定する:</p>
+<ol>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k = 0</code> とし, 累積確率を <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cumulative_p = 0</code> と初期化する.</li>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍を見る.<br>
+a. <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍の座標 <span class="math"><script type="math/tex">(x,y)</script></span> を取得し, これを <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">x</code>, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">y</code> に保存する.<br>
+b. もし, 座標 <span class="math"><script type="math/tex">(x,y)</script></span> にセルが存在しない (これはセル <span class="math"><script type="math/tex">(i,j)</script></span> が境界上に存在する場合に起こりうる) ときは, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> を1増やして2.に戻る (i.e., 次の方向をみる).<br>
+c. もし <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍がフィブリン, コラーゲン以外であれば, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> を1増やして2.に戻る (i.e., 次の方向をみる).<br></li>
+<li>累積確率 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cumulative_p</code> に <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍の確率 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">prob[k]</code> を加える.</li>
+<li>もし, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">r &lt; cumulative_p</code> となるのであれば, 次を実行する:<br>
+次のステップにおける <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍は線維芽細胞とし, その細胞内時間はセル <span class="math"><script type="math/tex">(i,j)</script></span> のものを引き継ぐ.<br>
+また, 次のステップにおけるセル <span class="math"><script type="math/tex">(i,j)</script></span> はコラーゲンとする.
+その後, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">MergeCluster</code> 関数により, セル <span class="math"><script type="math/tex">(i,j)</script></span> の属するクラスターと <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍の属するクラスターを合併し, アルゴリズムを終了する.</li>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> を1増やして2.に戻る (i.e., 次の方向をみる).</li>
+</ol>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">DirectionX(int i, int k)</code></h3>
+<p>int型の関数である.
+セル <span class="math"><script type="math/tex">(i,j)</script></span> の <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍のx座標を返す.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">DirectionY(int j, int k)</code></h3>
+<p>int型の関数である.
+セル <span class="math"><script type="math/tex">(i,j)</script></span> の <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍のy座標を返す.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">ProbabilityGenerator(double prob[], int i, int j)</code></h3>
+<p>void型の関数である.
+セル <span class="math"><script type="math/tex">(i,j)</script></span> のvon Neumann近傍に確率を割り振り, 配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">prob</code> にその確率を格納する.
+<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">prob[k]</code> に, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">k</code> 番目の近傍の確率の値が入る.
+セル <span class="math"><script type="math/tex">(i,j)</script></span> の位置が領域の下半分に存在するのであれば上方向に, 領域の上半分に存在するのであれば下方向に移動しやすくなるよう, 確率を割り振る.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">PutWorld(int world[][N])</code></h3>
+<p>void型の関数.
+<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">world</code> に格納されている状態を “tempfile.tmp” に書き込む.
+書き込む内容は, gnuplotの仕様に合わせてある.
+なお, シミュレーション領域外の座標を一時ファイルに書き込んでいるのは, いずれかの状態が存在しなかった場合に, 別の状態を表す色が変化してしまうのを防ぐためのダミーである.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Draw(int t)</code></h3>
+<p>void型の関数.
+gnuplot により tempfile.tmp の内容を表示する.
+ここで, 各状態の描画色, 描画の種類を設定している.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">GifDraw(int t)</code></h3>
+<p>void型の関数.
+gnuplot により tempfile.tmp の内容を表示するのに加え, ステップ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">t</code> の状態をgif画像に書き出す.
+ここで, 各状態の描画色, 描画の種類を設定しているが, 描画色は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Draw</code> 関数のものとは少々変更している (生成される画像の色を合わせるため).</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Copy(int from[][N], int to[][N])</code></h3>
+<p>void型の関数.
+2次元配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">from</code> の全内容を, 同じサイズの2次元配列 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">to</code> にコピーする.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">PrintState(int s, int world[][N], FILE *fp)</code></h3>
+<p>void型の関数.
+gnuplotで表示するために, 状態 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">s</code> にあるセルの座標を書き出す.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">PlotConfig(void)</code></h3>
+<p>void型の関数.
+gnuplotで表示するために, gnuplotの設定のためのコマンドを書き出す.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">MergeCluster(int cluster[], int i1, int j1, int i2, int j2)</code></h3>
+<p>void型の関数.
+セル <span class="math"><script type="math/tex">(i_1, j_1)</script></span> とセル <span class="math"><script type="math/tex">(i_2, j_2)</script></span> の所属するクラスターを同一のクラスターにまとめる.
+<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">ClusterNumber</code> 関数により, セル <span class="math"><script type="math/tex">(i_1, j_1)</script></span> とセル <span class="math"><script type="math/tex">(i_2, j_2)</script></span> の所属するクラスター番号 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">id1</code>, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">id2</code> を取得する.
+取得したクラスター番号が異なれば, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cluster[id2] = id1</code> とする.
+すなわち, セル <span class="math"><script type="math/tex">(i_2, j_2)</script></span> の所属するクラスター番号 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">id2</code> を, セル <span class="math"><script type="math/tex">(i_1, j_1)</script></span> の所属するクラスター番号 <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">id1</code> に更新する.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">ClusterNumber(int cluster[], int i, int j)</code></h3>
+<p>int型の関数.
+セル <span class="math"><script type="math/tex">(i, j)</script></span> の所属するクラスター番号を取得する再帰関数.</p>
+<ol>
+<li><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Dim1Index</code> 関数でセル <span class="math"><script type="math/tex">(i, j)</script></span> の番号を <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">id</code> に格納する.</li>
+<li>もし <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cluster[id]</code> が <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">-1</code> となっているならば, セル <span class="math"><script type="math/tex">(i, j)</script></span> の所属するクラスター番号は <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">id</code> 番であるとして <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">id</code> を返す.</li>
+<li>そうでない場合は, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cluster[id]</code> の番号が割り振られたセルのクラスター番号を出力する.
+そのために, まず <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cluster[id]</code> の番号が割り振られたセルの座標 <span class="math"><script type="math/tex">(k, l)</script></span> を求め, <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">ClusterNumber(cluster, k, l)</code> でこの関数を再帰的に呼び出す.</li>
+</ol>
+<p>セル <span class="math"><script type="math/tex">(i, j)</script></span> の所属するクラスターと同じクラスターに属するセルの番号が <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">cluster[id]</code> に入っているため, このようなアルゴリズムになっている.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">Dim1Index(int i, int j)</code></h3>
+<p>int型の関数.
+上述の番号付けによりセル <span class="math"><script type="math/tex">(i,j)</script></span> に付された番号を返す関数である.</p>
+<h3><code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CellTimeGenerator(void)</code></h3>
+<p>int型の関数.
+<code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">0</code> ～ <code style="font-family: Consolas, &#x30E1;&#x30A4;&#x30EA;&#x30AA;;">CYCLE_PERIOD - 1</code> の整数を一様ランダムに生成する.</p></body>
+</html>
