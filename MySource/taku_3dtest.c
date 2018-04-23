@@ -13,7 +13,7 @@
 
 #define Tf 44 //分裂1回あたりの遊走距離(20ミクロン×Tf)//
 
-#define N 10 //傷の大きさ//
+#define N 101 //傷の大きさ//
 #define TMPFILE "tempfile.tmp" //一時ファイル//
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL 2 //初期待ち時間(s)//
@@ -34,7 +34,7 @@ int main(int argc,char *argv[]){
 
     //初期条件//
 	printf("t = 0 h\n");
-	initworld(world,number);
+	initworld(world,number);	
 	fputworld(world,fission);
 
     if((pipe = popen(GNUPLOT " -persist","w")) == NULL){
@@ -47,15 +47,16 @@ int main(int argc,char *argv[]){
 	fprintf(pipe,"set xrange [0:%d]\n",N);
 	fprintf(pipe,"set yrange [0:%d]\n",N);
 	fprintf(pipe,"set zrange [0:%d]\n",N);
-	fprintf(pipe, "set size square\n");
-	fprintf(pipe, "unset xtics\n");
-	fprintf(pipe, "unset ytics\n");
-	fprintf(pipe, "unset ztics\n");
+	// fprintf(pipe, "set size square\n");
+	fprintf(pipe, "set ticslevel 0\n");
+	// fprintf(pipe, "unset xtics\n");
+	// fprintf(pipe, "unset ytics\n");
+	// fprintf(pipe, "unset ztics\n");
 	
 	//グラフに出力//
 	fprintf(pipe, "set title 't = %d h'\n",t);
 	fprintf(pipe, "set title font 'Arial,15'\n");
-	fprintf(pipe,"plot \"" TMPFILE "\" index 0 w p ps 1 pt 4 lt 3\n");
+	fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps 1 pt 4 lt 3\n");
 	fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
 	fflush(pipe);
 	// sleep(INIT_INTERVAL);
@@ -106,18 +107,18 @@ void initworld(int world[][N][N],int number[][N][N])
   int k;
 
 	//初期条件//
-    for(j=0;j<=N-1;++j){
-        for (k=0;k<=N-1;++k){
-            world[0][j][k] = 1;
-            world[N-1][j][k] = 1;
-        }
-    }
-    for(i=0;i<=N-1;++i){
-        for (k=0;k<=N-1;++k){
-            world[i][0][k] = 1;
-            world[i][N-1][k] = 1;
-        }
-    }
+    // for(j=0;j<=N-1;++j){
+    //     for (k=0;k<=N-1;++k){
+    //         world[0][j][k] = 1;
+    //         world[N-1][j][k] = 1;
+    //     }
+    // }
+    // for(i=0;i<=N-1;++i){
+    //     for (k=0;k<=N-1;++k){
+    //         world[i][0][k] = 1;
+    //         world[i][N-1][k] = 1;
+    //     }
+    // }
     for(i=0;i<=N-1;++i){
         for (j=0;j<=N-1;++j){
             world[i][j][0] = 1;
