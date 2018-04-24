@@ -2,47 +2,47 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include "MT.h" //ƒƒ‹ƒZƒ“ƒkEƒcƒCƒXƒ^[//
+#include "MT.h" //ãƒ¡ãƒ«ã‚»ãƒ³ãƒŒãƒ»ãƒ„ã‚¤ã‚¹ã‚¿ãƒ¼//
 
 #ifdef __unix__
 #include <unistd.h>
 #elif defined _WIN32
 #include <windows.h>
-#define sleep(x) Sleep(1000 * x) //sleepŠÖ”‚Ì’è‹`//
+#define sleep(x) Sleep(1000 * x) //sleepé–¢æ•°ã®å®šç¾©//
 #endif
 
-#define Tf 44 //•ª—ô1‰ñ‚ ‚½‚è‚Ì—V‘–‹——£(20ƒ~ƒNƒƒ“~Tf)//
-#define P_sleep 5 //‹x–°Šm—¦(%)//
-#define P_up 50 //‘OiŠm—¦(%)//
-#define P_down 10 //ŒãiŠm—¦(%)//
-#define P_side 20 //‰¡iŠm—¦(%)//
-#define P_spring 50 //1h‚ ‚½‚è‚Ì—N‚«o‚µŠm—¦(%)//
+#define Tf 44 //åˆ†è£‚1å›ã‚ãŸã‚Šã®éŠèµ°è·é›¢(20ãƒŸã‚¯ãƒ­ãƒ³Ã—Tf)//
+#define P_sleep 5 //ä¼‘çœ ç¢ºç‡(%)//
+#define P_up 50 //å‰é€²ç¢ºç‡(%)//
+#define P_down 10 //å¾Œé€²ç¢ºç‡(%)//
+#define P_side 20 //æ¨ªé€²ç¢ºç‡(%)//
+#define P_spring 50 //1hã‚ãŸã‚Šã®æ¹§ãå‡ºã—ç¢ºç‡(%)//
 
-#define N 101 //‚Ì‘å‚«‚³//
-#define BUFSIZE 256 //ƒoƒbƒtƒ@ƒTƒCƒY//
-#define INIT_INTERVAL 2 //‰Šú‘Ò‚¿ŠÔ(s)//
-#define INTERVAL 0.5 //‘Ò‚¿ŠÔ(s)//
-#define TMPFILE "tempfile.tmp" //ˆêƒtƒ@ƒCƒ‹//
-#define GNUPLOT "gnuplot" //gnuplot‚ÌêŠ//
+#define N 101 //å‚·ã®å¤§ãã•//
+#define BUFSIZE 256 //ãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚º//
+#define INIT_INTERVAL 2 //åˆæœŸå¾…ã¡æ™‚é–“(s)//
+#define INTERVAL 0.5 //å¾…ã¡æ™‚é–“(s)//
+#define TMPFILE "tempfile.tmp" //ä¸€æ™‚ãƒ•ã‚¡ã‚¤ãƒ«//
+#define GNUPLOT "gnuplot" //gnuplotã®å ´æ‰€//
 
-void fputworld(int world[][N],int fission[][N]); //gnuploto—Í//
-void nextt(int world[][N],int number[][N],int t_count,int fission[][N]); //ó‘ÔXV//
-void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][N],int fission[][N],int i,int j); //ƒ‹[ƒ‹“K—p//
-void initworld(int world[][N],int number[][N]); //‰Šúó‘Ô//
-void spring(int world[][N],int number[][N]); //—N‚«o‚µ//
-void top_count(int world[][N], int t); //æ“ª×–E‘¬“x//
-void sq_count(int world[][N],int t); //¡–ü‘¬“x//
+void fputworld(int world[][N],int fission[][N]); //gnuplotå‡ºåŠ›//
+void nextt(int world[][N],int number[][N],int t_count,int fission[][N]); //çŠ¶æ…‹æ›´æ–°//
+void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][N],int fission[][N],int i,int j); //ãƒ«ãƒ¼ãƒ«é©ç”¨//
+void initworld(int world[][N],int number[][N]); //åˆæœŸçŠ¶æ…‹//
+void spring(int world[][N],int number[][N]); //æ¹§ãå‡ºã—//
+void top_count(int world[][N], int t); //å…ˆé ­ç´°èƒé€Ÿåº¦//
+void sq_count(int world[][N],int t); //æ²»ç™’é€Ÿåº¦//
 
 
 int main(int argc,char *argv[])
 {
-	int t = 0; //Œo‰ßŠÔ(h)//
+	int t = 0; //çµŒéæ™‚é–“(h)//
 	int i,j,k;
-	int world[N][N] = {0}; //ƒZƒ‹‚Ìó‘Ô//
-	int number[N][N] = {0}; //×–E‚Ìó‘Ô//
-	int fission[N][N] = {0}; //•ª—ô—R—ˆ×–E//
-	int cell = 0; //×–E‚ÌŒÂ”//
-	int t_count; //ƒXƒeƒbƒv//
+	int world[N][N] = {0}; //ã‚»ãƒ«ã®çŠ¶æ…‹//
+	int number[N][N] = {0}; //ç´°èƒã®çŠ¶æ…‹//
+	int fission[N][N] = {0}; //åˆ†è£‚ç”±æ¥ç´°èƒ//
+	int cell = 0; //ç´°èƒã®å€‹æ•°//
+	int t_count; //ã‚¹ãƒ†ãƒƒãƒ—//
 	int scale;
 	int MAXT;
 	int fission_total = 0;
@@ -50,12 +50,12 @@ int main(int argc,char *argv[])
 	FILE *file;
 	FILE *fp;
 	
-	init_genrand((unsigned)time(NULL)); //—”‚Ì‰Šú‰»//
+	init_genrand((unsigned)time(NULL)); //ä¹±æ•°ã®åˆæœŸåŒ–//
 	
-	scale = Tf/22; //1h‚ ‚½‚è‚Ì—V‘–‹——£(20ƒ~ƒNƒƒ“~scale)//
-	MAXT = scale*1000; //7“úŠÔ‚ÌƒVƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“//
+	scale = Tf/22; //1hã‚ãŸã‚Šã®éŠèµ°è·é›¢(20ãƒŸã‚¯ãƒ­ãƒ³Ã—scale)//
+	MAXT = scale*1000; //7æ—¥é–“ã®ã‚·ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³//
 	
-	//‰ŠúğŒ//
+	//åˆæœŸæ¡ä»¶//
 	printf("t = 0 h\n");
 	initworld(world,number);
 	top_count(world,t);
@@ -67,7 +67,7 @@ int main(int argc,char *argv[])
 		exit(1);
 	}
 	
-	//gnuplot‚Ìİ’è//
+	//gnuplotã®è¨­å®š//
 	fprintf(pipe,"unset key\n");
 	fprintf(pipe,"set xrange [0:%d]\n",N);
 	fprintf(pipe,"set yrange [0:%d]\n",N);
@@ -75,7 +75,7 @@ int main(int argc,char *argv[])
 	fprintf(pipe, "unset xtics\n");
 	fprintf(pipe, "unset ytics\n");
 	
-	//ƒOƒ‰ƒt‚Éo—Í//
+	//ã‚°ãƒ©ãƒ•ã«å‡ºåŠ›//
 	fprintf(pipe, "set title 't = %d h'\n",t);
 	fprintf(pipe, "set title font 'Arial,15'\n");
 	fprintf(pipe,"plot \"" TMPFILE "\" index 0 w p ps 1 pt 4 lt 3\n");
@@ -83,7 +83,7 @@ int main(int argc,char *argv[])
 	fflush(pipe);
 	sleep(INIT_INTERVAL);
 	
-	//×–E”‚ğƒJƒEƒ“ƒg//
+	//ç´°èƒæ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆ//
 		for(i=0;i<=N-1;++i){
 	    		for(j=0;j<=N-1;++j){
 	    			if(world[i][j] == 1){
@@ -92,34 +92,34 @@ int main(int argc,char *argv[])
 	    		}
 	    	}
 	
-	//×–E”‚ğo—Í//
+	//ç´°èƒæ•°ã‚’å‡ºåŠ›//
 	file = fopen("count_cell.txt","w");
 	fprintf(file,"%d\n",cell);
 	fclose(file);
 	
-	//•ª—ô—R—ˆ×–E‚ğ‹L˜^//
+	//åˆ†è£‚ç”±æ¥ç´°èƒã‚’è¨˜éŒ²//
 	fp = fopen("fission.txt","w");
 	fprintf(fp,"%d\n",0);
 	fclose(fp);
 	
-	//ƒXƒeƒbƒvXV//
+	//ã‚¹ãƒ†ãƒƒãƒ—æ›´æ–°//
 	for(t_count=1;t_count<=MAXT;++t_count){
 		cell = 0;
 		fission_total = 0;
 		
 		if(t_count % scale == 0){
-			t += 1;  //ƒOƒ‰ƒtŠÔ•\¦XV//
-			top_count(world,t); //¡–ü‘¬“x‘ª’è‡@//
-			sq_count(world,t); //¡–ü‘¬“x‘ª’è‡A//
+			t += 1;  //ã‚°ãƒ©ãƒ•æ™‚é–“è¡¨ç¤ºæ›´æ–°//
+			top_count(world,t); //æ²»ç™’é€Ÿåº¦æ¸¬å®šâ‘ //
+			sq_count(world,t); //æ²»ç™’é€Ÿåº¦æ¸¬å®šâ‘¡//
 			if((genrand_int32()%100 + 1) <= P_spring){
-				spring(world,number); //—N‚«o‚µ//
+				spring(world,number); //æ¹§ãå‡ºã—//
 			}
 		}
 		
-		//ó‘ÔXV//
+		//çŠ¶æ…‹æ›´æ–°//
 		nextt(world,number,t_count,fission);
 		
-		//ƒOƒ‰ƒt‚Éo—Í//
+		//ã‚°ãƒ©ãƒ•ã«å‡ºåŠ›//
 		printf("t = %d h\n",t);
 		fputworld(world,fission);
 		fprintf(pipe, "set title 't = %d h'\n",t);
@@ -129,7 +129,7 @@ int main(int argc,char *argv[])
 		sleep(INTERVAL);
 
 		
-		//×–E”‚ğƒJƒEƒ“ƒg//
+		//ç´°èƒæ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆ//
 		for(i=0;i<=N-1;++i){
 	    		for(j=0;j<=N-1;++j){
 	    			if(world[i][j] == 1){
@@ -141,17 +141,17 @@ int main(int argc,char *argv[])
 	    		}
 	    	}
 	    
-		//×–E”‚ğo—Í//
+		//ç´°èƒæ•°ã‚’å‡ºåŠ›//
 		file = fopen("count_cell.txt","a");
 		fprintf(file,"%d\n",cell);
 		fclose(file);
 		
-		//•ª—ô—R—ˆ×–E‚ğ‹L˜^//
+		//åˆ†è£‚ç”±æ¥ç´°èƒã‚’è¨˜éŒ²//
 		fp = fopen("fission.txt","a");
 	    fprintf(fp,"%d\n",fission_total);
 	    fclose(fp);
 		
-	    if(cell >= N * N) break; //Š®‘S¡–ü//
+	    if(cell >= N * N) break; //å®Œå…¨æ²»ç™’//
 		
 	}
 	
@@ -162,21 +162,21 @@ int main(int argc,char *argv[])
 void nextt(int world[][N],int number[][N],int t_count,int fission[][N])
 {
 	int i,j;
-	int nextworld[N][N] = {0}; //Ÿ‚ÌƒZƒ‹‚Ìó‘Ô//
-	int mig_count[N][N] = {0}; //“¯ˆêƒZƒ‹‚Ì—V‘–ó‹µŠm”F//
+	int nextworld[N][N] = {0}; //æ¬¡ã®ã‚»ãƒ«ã®çŠ¶æ…‹//
+	int mig_count[N][N] = {0}; //åŒä¸€ã‚»ãƒ«ã®éŠèµ°çŠ¶æ³ç¢ºèª//
 	
 	
 	for(i=0;i<=N-1;++i){
 		for(j=0;j<=N-1;++j){
-				nextworld[i][j] = world[i][j]; //‘Oó‘Ô‚ÌˆøŒp//
+				nextworld[i][j] = world[i][j]; //å‰çŠ¶æ…‹ã®å¼•ç¶™//
 			}
 		}
-	//ó‘ÔXV‚ğŠJn‚·‚é³•ûŒ`‚Ì’¸“_‚ğŒˆ’è//
+	//çŠ¶æ…‹æ›´æ–°ã‚’é–‹å§‹ã™ã‚‹æ­£æ–¹å½¢ã®é ‚ç‚¹ã‚’æ±ºå®š//
 	if(t_count%4 == 1){
 		for(i=0;i<=N-1;++i){
 			for(j=0;j<=N-1;++j){
 				if(number[i][j] > 0){
-					calcnext(world,nextworld,number,mig_count,fission,i,j); //ƒ‹[ƒ‹“K—p//
+					calcnext(world,nextworld,number,mig_count,fission,i,j); //ãƒ«ãƒ¼ãƒ«é©ç”¨//
 				}
 			}
 		}
@@ -186,7 +186,7 @@ void nextt(int world[][N],int number[][N],int t_count,int fission[][N])
 		for(i=N-1;i>=0;--i){
 			for(j=0;j<=N-1;++j){
 				if(number[i][j] > 0){
-					calcnext(world,nextworld,number,mig_count,fission,i,j); //ƒ‹[ƒ‹“K—p//
+					calcnext(world,nextworld,number,mig_count,fission,i,j); //ãƒ«ãƒ¼ãƒ«é©ç”¨//
 				}
 			}
 		}
@@ -196,7 +196,7 @@ void nextt(int world[][N],int number[][N],int t_count,int fission[][N])
 		for(i=0;i<=N-1;++i){
 			for(j=N-1;j>=0;--j){
 				if(number[i][j] > 0){
-					calcnext(world,nextworld,number,mig_count,fission,i,j); //ƒ‹[ƒ‹“K—p//
+					calcnext(world,nextworld,number,mig_count,fission,i,j); //ãƒ«ãƒ¼ãƒ«é©ç”¨//
 				}
 			}
 		}
@@ -205,36 +205,36 @@ void nextt(int world[][N],int number[][N],int t_count,int fission[][N])
 		for(i=N-1;i>=0;--i){
 			for(j=N-1;j>=0;--j){
 				if(number[i][j] > 0){
-					calcnext(world,nextworld,number,mig_count,fission,i,j); //ƒ‹[ƒ‹“K—p//
+					calcnext(world,nextworld,number,mig_count,fission,i,j); //ãƒ«ãƒ¼ãƒ«é©ç”¨//
 				}
 			}
 		}
 	}
 	
 	
-	//‹«ŠEğŒ//
+	//å¢ƒç•Œæ¡ä»¶//
 	for(i=0;i<=N-1;i++){
 		if(nextworld[i][0] < 1){
 			nextworld[i][0] = 1;
-			number[i][0] = genrand_int32()%Tf + 1; //‹Ÿ‹‹×–E‚Ìó‘Ô//
+			number[i][0] = genrand_int32()%Tf + 1; //ä¾›çµ¦ç´°èƒã®çŠ¶æ…‹//
 		}
 		if(nextworld[i][N-1] < 1){
 			nextworld[i][N-1] = 1;
-			number[i][N-1] = genrand_int32()%Tf + 1; //‹Ÿ‹‹×–E‚Ìó‘Ô//
+			number[i][N-1] = genrand_int32()%Tf + 1; //ä¾›çµ¦ç´°èƒã®çŠ¶æ…‹//
 		}
 	}
     for(i=1;i<=N-2;i++){
     	if(nextworld[0][i] < 1){
     		nextworld[0][i] = 1;
-    		number[0][i] = genrand_int32()%Tf + 1; //‹Ÿ‹‹×–E‚Ìó‘Ô//
+    		number[0][i] = genrand_int32()%Tf + 1; //ä¾›çµ¦ç´°èƒã®çŠ¶æ…‹//
     	}
     	if(nextworld[N-1][i] < 1){
     		nextworld[N-1][i] = 1;
-    		number[N-1][i] = genrand_int32()%Tf + 1; //‹Ÿ‹‹×–E‚Ìó‘Ô//
+    		number[N-1][i] = genrand_int32()%Tf + 1; //ä¾›çµ¦ç´°èƒã®çŠ¶æ…‹//
     	}
     }
 	
-	//ó‘ÔXV//
+	//çŠ¶æ…‹æ›´æ–°//
 	for(i=0;i<=N-1;++i){
 		for(j=0;j<=N-1;++j){
 				world[i][j] = nextworld[i][j];
@@ -258,7 +258,7 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
 	int position[4] = {0};
 	
 	
-	//•ª—ôE—V‘–‚ğŒˆ’è//
+	//åˆ†è£‚ãƒ»éŠèµ°ã‚’æ±ºå®š//
 	if(number[i][j] == Tf){
 		rule = 1;
 	}
@@ -266,7 +266,7 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
 		rule = 2;
 	}
 	
-	        //l—¶‚·‚éüˆÍ‚ÌƒZƒ‹//
+	        //è€ƒæ…®ã™ã‚‹å‘¨å›²ã®ã‚»ãƒ«//
 	/*
 	            |  (i, j+1)  |
     --------------------------------------
@@ -275,7 +275,7 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
                 |  (i, j-1)  |
                                         */
 	
-	//ü•Óó‘Ô‚ğŠm”F//
+	//å‘¨è¾ºçŠ¶æ…‹ã‚’ç¢ºèª//
 	if((i==0 && j==0)||(i==0 && j==N-1)||(i==N-1 && j==N-1)||(i==N-1 && j==0)){
 		for(k=0;k<=3;k++){
 			state[k] = 1;
@@ -316,18 +316,18 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
 		state_sum += state[k];
 	}
 	
-	//l•û‚ğˆÍ‚Ü‚ê‚½‚çŸ‚ÌƒXƒeƒbƒv‚Å–„‚Ü‚é//
+	//å››æ–¹ã‚’å›²ã¾ã‚ŒãŸã‚‰æ¬¡ã®ã‚¹ãƒ†ãƒƒãƒ—ã§åŸ‹ã¾ã‚‹//
 	if(state_sum==4 && i!=0 && j!=0 && i!=N-1 && j!=N-1 && world[i][j]==0){
 		nextworld[i][j] = 1;
 		number[i][j] = genrand_int32()%Tf + 1;
 		fission[i][j] = 0;
 	}
 	
-	//À•W•ÏŠ·//
+	//åº§æ¨™å¤‰æ›//
 	a = i - (N-1)/2; 
 	b = j - (N-1)/2; 
 	
-	//’†S•ûŒü‚ğŒˆ’è//
+	//ä¸­å¿ƒæ–¹å‘ã‚’æ±ºå®š//
 	if(b>=a && b>=-a){
 		position[3] = 1;
 		position[1] = -1;
@@ -345,7 +345,7 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
 		position[0] = -1;
 	}
 
-    //•ª—ô//
+    //åˆ†è£‚//
     if (rule == 1){
     	if(world[i][j] == 1){
       		do{
@@ -354,28 +354,28 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
       			for(k=0;k<=3;++k){
       				if(state[k] == 0){
       					if(position[k] > 0){
-      						rand[k] = genrand_int32()%100 + 1; //‹ó‚«ƒZƒ‹‚É‘Î‚µ‚Ä—”‚ğ•t—^//
+      						rand[k] = genrand_int32()%100 + 1; //ç©ºãã‚»ãƒ«ã«å¯¾ã—ã¦ä¹±æ•°ã‚’ä»˜ä¸//
       						if(rand[k] <= P_up){
-      							rand_sum += 1; //•ª—ô‰ñ”‚ğƒJƒEƒ“ƒg//
+      							rand_sum += 1; //åˆ†è£‚å›æ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆ//
       						}
       					}
       					else if(position[k] < 0){
-      						rand[k] = genrand_int32()%100 + 1; //‹ó‚«ƒZƒ‹‚É‘Î‚µ‚Ä—”‚ğ•t—^//
+      						rand[k] = genrand_int32()%100 + 1; //ç©ºãã‚»ãƒ«ã«å¯¾ã—ã¦ä¹±æ•°ã‚’ä»˜ä¸//
       						if(rand[k] <= P_down){
-      							rand_sum += 1; //•ª—ô‰ñ”‚ğƒJƒEƒ“ƒg//
+      							rand_sum += 1; //åˆ†è£‚å›æ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆ//
       						}
       					}
       					else{
-      						rand[k] = genrand_int32()%100 + 1; //‹ó‚«ƒZƒ‹‚É‘Î‚µ‚Ä—”‚ğ•t—^//
+      						rand[k] = genrand_int32()%100 + 1; //ç©ºãã‚»ãƒ«ã«å¯¾ã—ã¦ä¹±æ•°ã‚’ä»˜ä¸//
       						if(rand[k] <= P_side){
-      							rand_sum += 1; //•ª—ô‰ñ”‚ğƒJƒEƒ“ƒg//
+      							rand_sum += 1; //åˆ†è£‚å›æ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆ//
       						}
       					}
       				}
       			}
-      		}while(rand_sum > 1); //•ª—ô‰ñ”§ŒÀ//
+      		}while(rand_sum > 1); //åˆ†è£‚å›æ•°åˆ¶é™//
       		
-      	    for(k=0;k<=3;++k){ //•ª—ô•ûŒü‚ğŒˆ’è//
+      	    for(k=0;k<=3;++k){ //åˆ†è£‚æ–¹å‘ã‚’æ±ºå®š//
       	    	if (k == 0){
       	    		x = i-1;
                     y = j;
@@ -393,7 +393,7 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
                     y = j-1;
                 }
       	    	if(position[k] > 0){
-      	    		if (state[k] == 0 && rand[k] <= P_up){ //‹ó‚«ƒZƒ‹‚ÉP_up‚ÌŠm—¦‚Å•ª—ô//
+      	    		if (state[k] == 0 && rand[k] <= P_up){ //ç©ºãã‚»ãƒ«ã«P_upã®ç¢ºç‡ã§åˆ†è£‚//
       	    			nextworld[i][j] = 1;
       		            nextworld[x][y] = 1;
       	    		    number[x][y] = 1;
@@ -401,7 +401,7 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
       	    		}
       	    	}
       	    	else if(position[k] < 0){
-      	    		if (state[k] == 0 && rand[k] <= P_down){ //‹ó‚«ƒZƒ‹‚ÉP_down‚ÌŠm—¦‚Å•ª—ô//
+      	    		if (state[k] == 0 && rand[k] <= P_down){ //ç©ºãã‚»ãƒ«ã«P_downã®ç¢ºç‡ã§åˆ†è£‚//
       	    			nextworld[i][j] = 1;
       		            nextworld[x][y] = 1;
       	    		    number[x][y] = 1;
@@ -409,7 +409,7 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
       	    		}
       	    	}
       	    	else{
-      	    		if (state[k] == 0 && rand[k] <= P_side){ //‹ó‚«ƒZƒ‹‚ÉP_side‚ÌŠm—¦‚Å•ª—ô//
+      	    		if (state[k] == 0 && rand[k] <= P_side){ //ç©ºãã‚»ãƒ«ã«P_sideã®ç¢ºç‡ã§åˆ†è£‚//
       	    			nextworld[i][j] = 1;
       		            nextworld[x][y] = 1;
       	    		    number[x][y] = 1;
@@ -419,7 +419,7 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
       	    	}
       	    }
     	
-    	//”Ô†‚ÌXV//
+    	//ç•ªå·ã®æ›´æ–°//
     	if(genrand_int32()%100 + 1 <=  P_sleep){
     		number[i][j] = -1;
     	}
@@ -428,7 +428,7 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
     	}
     }
     
-	//—V‘–//
+	//éŠèµ°//
     else if (rule == 2) {
     	if(world[i][j] == 1){
       		do{
@@ -437,28 +437,28 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
       			for(k=0;k<=3;++k){
       				if(state[k] == 0){
       					if(position[k] > 0){
-      						rand[k] = genrand_int32()%100 + 1; //‹ó‚«ƒZƒ‹‚É‘Î‚µ‚Ä—”‚ğ•t—^//
+      						rand[k] = genrand_int32()%100 + 1; //ç©ºãã‚»ãƒ«ã«å¯¾ã—ã¦ä¹±æ•°ã‚’ä»˜ä¸//
       						if(rand[k] <= P_up){
-      							rand_sum += 1; //—V‘–‰ñ”‚ğƒJƒEƒ“ƒg//
+      							rand_sum += 1; //éŠèµ°å›æ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆ//
       						}
       					}
       					else if(position[k] < 0){
-      						rand[k] = genrand_int32()%100 + 1; //‹ó‚«ƒZƒ‹‚É‘Î‚µ‚Ä—”‚ğ•t—^//
+      						rand[k] = genrand_int32()%100 + 1; //ç©ºãã‚»ãƒ«ã«å¯¾ã—ã¦ä¹±æ•°ã‚’ä»˜ä¸//
       						if(rand[k] <= P_down){
-      							rand_sum += 1; //—V‘–‰ñ”‚ğƒJƒEƒ“ƒg//
+      							rand_sum += 1; //éŠèµ°å›æ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆ//
       						}
       					}
       					else{
-      						rand[k] = genrand_int32()%100 + 1; //‹ó‚«ƒZƒ‹‚É‘Î‚µ‚Ä—”‚ğ•t—^//
+      						rand[k] = genrand_int32()%100 + 1; //ç©ºãã‚»ãƒ«ã«å¯¾ã—ã¦ä¹±æ•°ã‚’ä»˜ä¸//
       						if(rand[k] <= P_side){
-      							rand_sum += 1; //—V‘–‰ñ”‚ğƒJƒEƒ“ƒg//
+      							rand_sum += 1; //éŠèµ°å›æ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆ//
       						}
       					}
       				}
       			}
-      		}while(rand_sum > 1); //—V‘–‰ñ”§ŒÀ//
+      		}while(rand_sum > 1); //éŠèµ°å›æ•°åˆ¶é™//
       		
-      	    for(k=0;k<=3;++k){ //—V‘–•ûŒü‚ğŒˆ’è//
+      	    for(k=0;k<=3;++k){ //éŠèµ°æ–¹å‘ã‚’æ±ºå®š//
       	    	if (k == 0){
       	    		x = i-1;
                     y = j;
@@ -476,14 +476,14 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
                     y = j-1;
                 }
       	    	if(position[k] > 0){
-      	    		if (state[k] == 0 && rand[k] <= P_up){ //‹ó‚«ƒZƒ‹‚ÉP_up‚ÌŠm—¦‚Å—V‘–//
-      	    			if(mig_count[x][y] == 0){ //“¯ˆêƒZƒ‹‚Ö‚Ì—V‘–‚ğ‹Ö~//
+      	    		if (state[k] == 0 && rand[k] <= P_up){ //ç©ºãã‚»ãƒ«ã«P_upã®ç¢ºç‡ã§éŠèµ°//
+      	    			if(mig_count[x][y] == 0){ //åŒä¸€ã‚»ãƒ«ã¸ã®éŠèµ°ã‚’ç¦æ­¢//
       	    				nextworld[i][j] = 0;
       				        nextworld[x][y] = 1;
       				        mig_count[x][y] = 1;
       	    			    number[x][y] = number[i][j] + 1;
       	    			    mig_check = 1;
-      	    				if(fission[i][j] == 1){ //•ª—ôî•ñ‚ÌˆøŒp‚¬//
+      	    				if(fission[i][j] == 1){ //åˆ†è£‚æƒ…å ±ã®å¼•ç¶™ã//
       	    					fission[i][j] = 0;
       	    					fission[x][y] = 1;
       	    				}
@@ -491,14 +491,14 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
       	    		}
       	    	}
       	    	else if(position[k] < 0){
-      	    		if (state[k] == 0 && rand[k] <= P_down){ //‹ó‚«ƒZƒ‹‚ÉP_down‚ÌŠm—¦‚Å—V‘–//
-      	    			if(mig_count[x][y] == 0){ //“¯ˆêƒZƒ‹‚Ö‚Ì—V‘–‚ğ‹Ö~//
+      	    		if (state[k] == 0 && rand[k] <= P_down){ //ç©ºãã‚»ãƒ«ã«P_downã®ç¢ºç‡ã§éŠèµ°//
+      	    			if(mig_count[x][y] == 0){ //åŒä¸€ã‚»ãƒ«ã¸ã®éŠèµ°ã‚’ç¦æ­¢//
       	    				nextworld[i][j] = 0;
       				        nextworld[x][y] = 1;
       				        mig_count[x][y] = 1;
       	    			    number[x][y] = number[i][j] + 1;
       	    			    mig_check = 1;
-      	    				if(fission[i][j] == 1){ //•ª—ôî•ñ‚ÌˆøŒp‚¬//
+      	    				if(fission[i][j] == 1){ //åˆ†è£‚æƒ…å ±ã®å¼•ç¶™ã//
       	    					fission[i][j] = 0;
       	    					fission[x][y] = 1;
       	    				}
@@ -506,14 +506,14 @@ void calcnext(int world[][N],int nextworld[][N],int number[][N],int mig_count[][
       	    		}
       	    	}
       	    	else{
-      	    		if (state[k] == 0 && rand[k] <= P_side){ //‹ó‚«ƒZƒ‹‚ÉP_side‚ÌŠm—¦‚Å—V‘–//
-      	    			if(mig_count[x][y] == 0){ //“¯ˆêƒZƒ‹‚Ö‚Ì—V‘–‚ğ‹Ö~//
+      	    		if (state[k] == 0 && rand[k] <= P_side){ //ç©ºãã‚»ãƒ«ã«P_sideã®ç¢ºç‡ã§éŠèµ°//
+      	    			if(mig_count[x][y] == 0){ //åŒä¸€ã‚»ãƒ«ã¸ã®éŠèµ°ã‚’ç¦æ­¢//
       	    				nextworld[i][j] = 0;
       				        nextworld[x][y] = 1;
       				        mig_count[x][y] = 1;
       	    			    number[x][y] = number[i][j] + 1;
       	    			    mig_check = 1;
-      	    				if(fission[i][j] == 1){ //•ª—ôî•ñ‚ÌˆøŒp‚¬//
+      	    				if(fission[i][j] == 1){ //åˆ†è£‚æƒ…å ±ã®å¼•ç¶™ã//
       	    					fission[i][j] = 0;
       	    					fission[x][y] = 1;
       	    				}
@@ -539,7 +539,7 @@ void fputworld(int world[][N],int fission[][N])
 		exit(1);
 	}
 	
-	//×–E‚ÌˆÊ’u‚ğo—Í//
+	//ç´°èƒã®ä½ç½®ã‚’å‡ºåŠ›//
 	for(i=0;i<=N-1;++i){
 		for(j=0;j<=N-1;++j){
 			if(world[i][j] == 1 && fission[i][j] == 0){ 
@@ -550,7 +550,7 @@ void fputworld(int world[][N],int fission[][N])
 	
 	fprintf(fp,"\n\n");
 	
-	//×–E‚ÌˆÊ’u‚ğo—Í//
+	//ç´°èƒã®ä½ç½®ã‚’å‡ºåŠ›//
 	for(i=0;i<=N-1;++i){
 		for(j=0;j<=N-1;++j){
 			if(world[i][j] == 1 && fission[i][j] == 1){ 
@@ -569,7 +569,7 @@ void initworld(int world[][N],int number[][N])
   int i;
   int j;
 
-	//‰ŠúğŒ//
+	//åˆæœŸæ¡ä»¶//
     for(i=0;i<=N-1;i++){
         world[i][0] = 1;
     	world[i][N-1] = 1;
@@ -595,20 +595,18 @@ void spring(int world[][N],int number[][N])
 	int site_x,site_y;
 	long i;
 	
-	//—N‚«o‚µ‚ÌˆÊ’u‚ğŒˆ’è//
-	for(i=0;i<=10000000;i++){
+	//æ¹§ãå‡ºã—ã®ä½ç½®ã‚’æ±ºå®š//
+	for(i=0;i<=10000000;i++){	
 		site_x = genrand_int32()%(N-2) + 1;
 		site_y = genrand_int32()%(N-2) + 1;
 		
-		if(world[site_x][site_y] == 0){ //‹ó‚«ƒZƒ‹‚É—N‚«o‚µ//
+		if(world[site_x][site_y] == 0){ //ç©ºãã‚»ãƒ«ã«æ¹§ãå‡ºã—//
 			world[site_x][site_y] = 1;
 			number[site_x][site_y] = genrand_int32()%Tf + 1;
 			break;
 		}
 	}
 }
-
-
 
 
 void top_count(int world[][N], int t)
@@ -620,12 +618,12 @@ void top_count(int world[][N], int t)
 	int e_count = 0;
 	FILE *fp;
 	
-	//e[]‚Ì‰Šú‰»//
+	//e[]ã®åˆæœŸåŒ–//
 	for(i=1;i<=4;i++){
 		e[i] = -1;
 	}
 
-	//’†S//
+	//ä¸­å¿ƒ//
 	s = 0;
 	x = (N-1)/2;
 	y = (N-1)/2;
@@ -635,7 +633,7 @@ void top_count(int world[][N], int t)
 		}
 	}
 	
-	//’†SˆÈŠO//
+	//ä¸­å¿ƒä»¥å¤–//
 	for(s=1;s<=(N-1)/2;s++){
 		for(i=-s;i<=s;i++){
 			for(j=-s;j<=s;j++){
@@ -659,7 +657,7 @@ void top_count(int world[][N], int t)
 		}
 	}
 	
-	//¡–üó‹µ‚ğ‹L˜^//
+	//æ²»ç™’çŠ¶æ³ã‚’è¨˜éŒ²//
 	if(t==0){
 		fp = fopen("recovery_top.txt","w");
 	}
@@ -677,7 +675,7 @@ void top_count(int world[][N], int t)
 		fprintf(fp, " %d ",t);
 	}
 	
-	for(i=1;i<=4;++i){ //’†S‚©‚ç‚Ì‹——£‚ğ‹L˜^//
+	for(i=1;i<=4;++i){ //ä¸­å¿ƒã‹ã‚‰ã®è·é›¢ã‚’è¨˜éŒ²//
 		if(e[i]<10){
 			fprintf(fp, "  %d ",e[i]);
 		}
@@ -687,7 +685,7 @@ void top_count(int world[][N], int t)
 		e_count += e[i];
 	}
 	
-	if(e_count/4 < 10){ //’†S‚©‚ç‚Ì•½‹Ï‹——£‚ğ‹L˜^//
+	if(e_count/4 < 10){ //ä¸­å¿ƒã‹ã‚‰ã®å¹³å‡è·é›¢ã‚’è¨˜éŒ²//
 		fprintf(fp,"  %d \n",e_count/4);
 	}
 	else{
@@ -706,7 +704,7 @@ void sq_count(int world[][N],int t)
 	int e_count = 0;
 	FILE *fp;
 	
-	//s‚Ü‚½‚Í—ñ‚Ì×–E”‚ğƒJƒEƒ“ƒg//
+	//è¡Œã¾ãŸã¯åˆ—ã®ç´°èƒæ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆ//
 	for(i=1;i<=(N-1)/2;++i){
 		cell = 0;
 		for(j=1;j<=N-2;++j){
@@ -715,11 +713,11 @@ void sq_count(int world[][N],int t)
 			}
 		}
 		if(cell < N-2){
-			e[0] = (N-1)/2 - (i-1); //¡–ü‚Ìisó‹µ//
+			e[0] = (N-1)/2 - (i-1); //æ²»ç™’ã®é€²è¡ŒçŠ¶æ³//
 			break;
 		}
 		if(i == (N-1)/2 && cell == N-2){
-			e[0] = 0; //’†S‚Ü‚Å¡–ü//
+			e[0] = 0; //ä¸­å¿ƒã¾ã§æ²»ç™’//
 		}
 	}
 	
@@ -731,11 +729,11 @@ void sq_count(int world[][N],int t)
 			}
 		}
 		if(cell < N-2){
-			e[3] = (N-1)/2 - (j-1); //¡–ü‚Ìisó‹µ//
+			e[3] = (N-1)/2 - (j-1); //æ²»ç™’ã®é€²è¡ŒçŠ¶æ³//
 			break;
 		}
 		if(j == (N-1)/2 && cell == N-2){
-			e[3] = 0; //’†S‚Ü‚Å¡–ü//
+			e[3] = 0; //ä¸­å¿ƒã¾ã§æ²»ç™’//
 		}
 	}
 
@@ -747,11 +745,11 @@ void sq_count(int world[][N],int t)
 			}
 		}
 		if(cell < N-2){
-			e[2] = (i+1) - (N-1)/2; //¡–ü‚Ìisó‹µ//
+			e[2] = (i+1) - (N-1)/2; //æ²»ç™’ã®é€²è¡ŒçŠ¶æ³//
 			break;
 		}
 		if(i == (N-1)/2 && cell == N-2){
-			e[2] = 0; //’†S‚Ü‚Å¡–ü//
+			e[2] = 0; //ä¸­å¿ƒã¾ã§æ²»ç™’//
 		}
 	}
 	
@@ -763,16 +761,16 @@ void sq_count(int world[][N],int t)
 			}
 		}
 		if(cell < N-2){
-			e[1] = (j+1) - (N-1)/2; //¡–ü‚Ìisó‹µ//
+			e[1] = (j+1) - (N-1)/2; //æ²»ç™’ã®é€²è¡ŒçŠ¶æ³//
 			break;
 		}
 		if(j == (N-1)/2 && cell == N-2){
-			e[1] = 0; //’†S‚Ü‚Å¡–ü//
+			e[1] = 0; //ä¸­å¿ƒã¾ã§æ²»ç™’//
 		}
 	}
 	
 	
-	//¡–üó‹µ‚ğ‹L˜^//
+	//æ²»ç™’çŠ¶æ³ã‚’è¨˜éŒ²//
 	if(t==0){
 		fp = fopen("recovery_sq.txt","w");
 	}
@@ -790,7 +788,7 @@ void sq_count(int world[][N],int t)
 		fprintf(fp, " %d ",t);
 	}
 	
-	for(i=0;i<=3;++i){ //’†S‚©‚ç‚Ì‹——£‚ğ‹L˜^//
+	for(i=0;i<=3;++i){ //ä¸­å¿ƒã‹ã‚‰ã®è·é›¢ã‚’è¨˜éŒ²//
 		if(e[i]<10){
 			fprintf(fp, "  %d ",e[i]);
 		}
@@ -800,7 +798,7 @@ void sq_count(int world[][N],int t)
 		e_count += e[i];
 	}
 	
-	if(e_count/4 < 10){ //’†S‚©‚ç‚Ì•½‹Ï‹——£‚ğ‹L˜^//
+	if(e_count/4 < 10){ //ä¸­å¿ƒã‹ã‚‰ã®å¹³å‡è·é›¢ã‚’è¨˜éŒ²//
 		fprintf(fp,"  %d \n",e_count/4);
 	}
 	else{

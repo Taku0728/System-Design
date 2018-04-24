@@ -8,7 +8,7 @@
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/MySource/taku_3dtest.exe",
+            "program": "${workspaceFolder}/MySource/3d_simulator.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

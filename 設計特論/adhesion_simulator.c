@@ -17,7 +17,7 @@
 #define WOUND M                             // the size of the wound
 #define SHEET 10                            // the thickness of the sheet
 #define P_REST 0.05                         // the probability of rest
-#define P_DEG 0.01                         // the probability of degradation of a sheet
+#define P_DEG 0.01                          // the probability of degradation of a sheet
 #define P_FRONT 0.50                        // the probability of action on the cell in the front of cell (i,j)
 #define P_SIDE 0.20                         // the probability of action on the cell in the side of cell (i,j)
 #define P_REAR 0.10                         // the probability of action on the cell in the rear of cell (i,j)
