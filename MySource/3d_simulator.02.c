@@ -32,12 +32,12 @@
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
 
-#define N (101) //傷の大きさ
-#define H (25) 	//組織の距離
+#define N (201) //傷の大きさ
+#define H (51) 	//組織の距離
 #define TMPFILE "tempfile.tmp" //一時ファイル//
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (2) //初期待ち時間(s)//
-#define INTERVAL (0.8) //待ち時間(s)//
+#define INTERVAL (1.5) //待ち時間(s)//
 
 int world[N][N][H] = {0}; //セルの状態//
 int nextworld[N][N][H] = {0}; //次のセルの状態//
