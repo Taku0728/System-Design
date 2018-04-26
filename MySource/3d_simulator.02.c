@@ -14,7 +14,6 @@
 #define Tf (44) //分裂1回あたりの遊走距離(20ミクロン×Tf)//
 #define Tf_m (44) //中皮細胞
 #define P_sleep (0.05) //休眠確率
-#define Dir_val (3.0) //中皮細胞の増殖・遊走の方向バイアス
 // #define P_up 0.5 //前進確率
 // #define P_down 0.1 //後進確率(%)//
 // #define P_side 0.2 //横進確率(%)//
@@ -25,16 +24,16 @@
 #define P_f_migration (0.3) //線維芽細胞の遊走確率
 #define P_m_migration (0.7) //中皮細胞の遊走確率
 #define Survival_cond (5) //生存可能な周囲細胞数
-#define Survival_cond2 (3) //中皮細胞の生存に必要な周囲の線維芽細胞数
+#define Survival_cond2 (2.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
+#define Dir_val (3.0) //中皮細胞の増殖・遊走の方向バイアス
 #define Completion_coef (4.5) //中皮細胞の補填に必要な周囲の中皮細胞数
-#define Disp_cond (3.0) //線と判断する分散
+#define Disp_cond (4.0) //線と判断する分散
 
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
-#define P_room (19.10408) //8/sqrt(3) + 12/sqrt(2) + 6の高速化
 
 #define N (101) //傷の大きさ
-#define H (25) //組織の距離
+#define H (25) 	//組織の距離
 #define TMPFILE "tempfile.tmp" //一時ファイル//
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (2) //初期待ち時間(s)//
@@ -103,8 +102,8 @@ int main(int argc,char *argv[]){
 	//グラフに出力//
 	fprintf(pipe, "set title 't = %d h'\n",t);
 	fprintf(pipe, "set title font 'Arial,15'\n");
-	fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps 0.1 pt 65 lt 5, \"" TMPFILE "\" index 1 w p ps 0.1 pt 65 lt 2\n");
-	fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
+	fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps 0.2 pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps 0.2 pt 4 lt 2\n");
+	// fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
 	fflush(pipe);
 	sleep(INIT_INTERVAL);
 	
@@ -139,7 +138,7 @@ int main(int argc,char *argv[]){
 			if((genrand_int32()%100 + 1) <= P_spring){
 				spring(world,number); //湧き出し//
 			}
-			spring();
+			spring();	
 		}
 		//状態更新//
 		nextt(t_count);
@@ -149,8 +148,8 @@ int main(int argc,char *argv[]){
 		fputworld();
 		fprintf(pipe, "set title 't = %d h'\n",t);
 		fprintf(pipe, "set title font 'Arial,15'\n");
-		fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps 0.1 pt 65 lt 5, \"" TMPFILE "\" index 1 w p ps 0.1 pt 65 lt 2\n");
-		fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
+		fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps 0.2 pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps 0.2 pt 4 lt 2\n");
+		// fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
 		fflush(pipe);
 		sleep(INTERVAL);
 	}
@@ -591,57 +590,43 @@ int isViable (int i, int j, int k, int type) {
 	double tem = 0;
 	double val = 0;
 	double val2 = 0;
-	int count = 0;
 	int i0 = max(0, i - 1);
 	int j0 = max(0, j - 1);
 	int k0 = max(0, k - 1);
-
 	int i1 = min(N - 1, i + 1);
 	int j1 = min(N - 1, j + 1);
 	int k1 = min(H - 1, k + 1);
-	int si, sj, sk;
+	int i2, j2, k2;
 	
 	//線維芽細胞
 	if (type == 1){
 		//中皮細胞の上では増殖できない
 		if (k < (H - 1)/2) {
-			if (world[i][j][k0] == 2 || world[i][j][max(0, k0 - 1)] == 2){
-				return 0;
+			for (i2 = i0; i2 <= i1; ++i2) {
+				for (j2 = j0; j2 <= j1; ++j2) {
+					if (world[i2][j2][k0] == 2 || world[i2][j2][max(0, k0 - 1)] == 2) {
+						return 0;
+					}
+				}
 			}
 		}
 		else {
-			if (world[i][j][k1] == 2 || world[i][j][min(H - 1, k1 + 1)] == 2){
-				return 0;
+			for (i2 = i0; i2 <= i1; ++i2) {
+				for (j2 = j0; j2 <= j1; ++j2) {
+					if (world[i2][j2][k1] == 2 || world[i2][j2][min(H - 1, k1 + 1)] == 2) {
+						return 0;
+					}
+				}
 			}
 		}
 		
-		for (si = i0; si <= i1; ++si) {
-			for (sj = j0; sj <= j1; ++sj) {
-				for (sk = k0; sk <= k1; ++sk) {
-					if (world[si][sj][sk] == 0) {
+		for (i2 = i0; i2 <= i1; ++i2) {
+			for (j2 = j0; j2 <= j1; ++j2) {
+				for (k2 = k0; k2 <= k1; ++k2) {
+					if (world[i2][j2][k2] == 0) {
 						continue;
 					}
-					count = 0;
-					if(si == i) ++count;
-					if(sj == j) ++count;
-					if(sk == k) ++count;
-					switch (count) {
-						//頂点の確率係数 = 1/sqrt(3)
-						case 0:						
-							val += R_sqrt3;			
-							break;
-						//辺心nの確率係数 = 1/sqrt(2)
-						case 1:						
-							val += R_sqrt2;			
-							break;
-						//面心の確率係数 = 1.0
-						case 2:						
-							val += 1.0;				
-							break;
-						//中心確率係数 = 0.0
-						default:					
-							break;				
-					}
+					val += getPcoef(i, j, k, i2, j2, k2);
 				}
 			}
 		}
@@ -654,49 +639,36 @@ int isViable (int i, int j, int k, int type) {
 	}
 
 	//中皮細胞
-	else if (type == 2){
+	else if (type == 2) {
 		//線維芽細胞の下では増殖できない
 		if (k < (H - 1)/2) {
-			if (world[i][j][k1] == 1 || world[i][j][min(H - 1, k1 + 1)] == 1){
-				return 0;
+			for (i2 = i0; i2 <= i1; ++i2) {
+				for (j2 = j0; j2 <= j1; ++j2) {
+					if (world[i2][j2][k1] == 2 || world[i2][j2][min(H - 1, k1 + 1)] == 2) {
+						return 0;
+					}
+				}
 			}
 		}
 		else {
-			if (world[i][j][k0] == 1 || world[i][j][max(0, k0 - 1)] == 1){
-				return 0;
+			for (i2 = i0; i2 <= i1; ++i2) {
+				for (j2 = j0; j2 <= j1; ++j2) {
+					if (world[i2][j2][k0] == 1 || world[i2][j2][max(0, k0 - 1)] == 1) {
+						return 0;
+					}
+				}
 			}
 		}
-		for (si = i0; si <= i1; ++si) {
-			for (sj = j0; sj <= j1; ++sj) {
-				for (sk = k0; sk <= k1; ++sk) {
-					if (world[si][sj][sk] == 0) {
+		for (i2 = i0; i2 <= i1; ++i2) {
+			for (j2 = j0; j2 <= j2; ++j2) {
+				for (k2 = k0; k2 <= k2; ++k2) {
+					if (world[i2][j2][k2] == 0) {
 						continue;
 					}
-					tem = 0;
-					count = 0;
-					if(si == i) ++count;
-					if(sj == j) ++count;
-					if(sk == k) ++count;
-					switch (count) {
-						//頂点の確率係数 = 1/sqrt(3)
-						case 0:						
-							tem = R_sqrt3;			
-							break;
-						//辺心nの確率係数 = 1/sqrt(2)
-						case 1:						
-							tem = R_sqrt2;			
-							break;
-						//面心の確率係数 = 1.0
-						case 2:						
-							tem = 1.0;				
-							break;
-						//中心確率係数 = 0.0
-						default:					
-							break;				
-					}
+					tem = getPcoef(i, j, k, i2, j2, k2);
 					val += tem;
-					//線維芽細胞が隣接する			
-					if (world[si][sj][sk] == 1) {
+					//線維芽細胞が隣接する
+					if (world[i2][j2][k2] == 1) {
 						val2 += tem;
 					}
 				}
@@ -719,23 +691,8 @@ double getDvalue(int i0, int j0, int k0, int i1, int j1, int k1){
 	double p_tem = 0;
 	dist0 = sqrt(pow(i0 - (N - 1)/2.0, 2.0) + pow(j0 - (N - 1)/2.0, 2.0));
 	dist1 = sqrt(pow(i1 - (N - 1)/2.0, 2.0) + pow(j1 - (N - 1)/2.0, 2.0) + pow(k1 - k0, 2.0));
-	if (i1 == i0) ++count;
-	if (j1 == j0) ++count;
-	if (k1 == k0) ++count;
-	switch (count) {
-		case 0:							//頂点
-			p_tem = R_sqrt3;			//確率係数 = 1/sqrt(3)
-			break;
-		case 1:							//辺心
-			p_tem = R_sqrt2;			//確率係数 = 1/sqrt(2)
-			break;
-		case 2:							//面心
-			p_tem = 1.0;				//確率係数 = 1.0
-			break;
-		default:						//中心
-			break;						//確率係数 = 0
-	}
-	return pow(Dir_val, (dist0 - dist1)* p_tem);
+	p_tem = getPcoef(i0, j0, k0, i1, j1, k1);
+	return pow(Dir_val, (dist0 - dist1) * p_tem);
 }
 
 void completion(int i, int j, int k) {
@@ -756,21 +713,7 @@ void completion(int i, int j, int k) {
 		for (j2 = j0; j2 <= j1; ++j2) {
 			for (k2 = k0; k2 <= k1; ++k2) {
 				if (world[i][j][k] == 2) {
-					count0 = 0;
-					if(i2 == i) ++count0;
-					if(j2 == j) ++count0;
-					if(k2 == k) ++count0;
-					switch (count0) {
-						case 0:						//頂点
-							val += R_sqrt3;			//確率係数 = 1/sqrt(3)
-							break;
-						case 1:						//辺心
-							val += R_sqrt2;			//確率係数 = 1/sqrt(2)
-							break;
-						default:					//面心
-							val += 1.0;				//確率係数 = 1.0
-							break;
-					}
+					val += getPcoef(i, j, k, i2, j2, k2);
 					disp[0] += pow(i - i2, 2.0) / 9;
 					disp[1] += pow(j - j2, 2.0) / 9;
 					disp[2] += pow(k - k2, 2.0) / 9;
@@ -780,7 +723,7 @@ void completion(int i, int j, int k) {
 					if (i2 == i) ++count0;
 					if (j2 == j) ++count0;
 					if (k2 == k) ++count0;
-					if (count0 = 2) {
+					if (count0 == 2) {
 						count1 = 1;
 					}
 				}
@@ -789,7 +732,7 @@ void completion(int i, int j, int k) {
 	}
 	count0 = 0;
 	for (i2 = 0; i2 <= 2; ++i2) {
-		if (disp[i] < Disp_cond && val > Completion_coef && count1 != 0) {
+		if (disp[i2] < Disp_cond && val > Completion_coef && count1 != 0) {
 			world[i][j][k] = 2;
 			number[i][j][k] = genrand_int32()%Tf_m + 1;
 			return;
@@ -807,7 +750,9 @@ double getPcoef (int i0, int j0, int k0, int i1, int j1, int k1) {
 			return R_sqrt3;				//確率係数 = 1/sqrt(3)
 		case 1:							//辺心
 			return R_sqrt2;				//確率係数 = 1/sqrt(2)
-		default:						//面心
-			return 1.0;				//確率係数 = 1.0
+		case 2:							//面心
+			return 1.0;					//確率係数 = 1.0
+		default:						//中心
+			return 0;					//確率係数 = 0
 	}
 }
