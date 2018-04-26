@@ -151,14 +151,16 @@ int main(int argc,char *argv[])
 	    fprintf(fp,"%d\n",fission_total);
 	    fclose(fp);
 		
-	    if(cell >= N * N) break; //完全治癒//
+	    if(cell >= N * N) {
+			break; //完全治癒//
+		}
 		
 	}
 	
 	return 0;
 }
 
-
+	
 void nextt(int world[][N],int number[][N],int t_count,int fission[][N])
 {
 	int i,j;
