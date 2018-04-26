@@ -25,6 +25,9 @@
 #define P_f_migration (0.3) //線維芽細胞の遊走確率
 #define P_m_migration (0.7) //中皮細胞の遊走確率
 #define Survival_cond (5) //生存可能な周囲細胞数
+#define Survival_cond2 (3) //中皮細胞の生存に必要な周囲の線維芽細胞数
+#define Completion_coef (4.5) //中皮細胞の補填に必要な周囲の中皮細胞数
+#define Disp_cond (3.0) //線と判断する分散
 
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
@@ -46,11 +49,16 @@ void initworld();
 void nextt(int t_count); //状態更新//
 void calcnext(int i, int j, int k);	//ルール適用//
 void spring();
-void completion(int i, int j, int k);	//空きの補完	
+void completion(int i, int j, int k);	//空きの補完
 
-int f_action(int i, int j, int k); 				//行動（分裂・遊走・静止）の決定
-int isViable(int i, int j, int k, int type);	//隣合う遷移細胞が存在するか
-double d_value(int i0, int j0, int k0, int i1, int j1, int j3);			//向かう方向の期待値
+//行動（分裂・遊走・静止）の決定
+int f_action(int i, int j, int k); 				
+//隣合う遷移細胞が存在するか
+int isViable(int i, int j, int k, int type);	
+//向かう方向の期待値
+double getDvalue(int i0, int j0, int k0, int i1, int j1, int j3);			
+//[i0][j0][k0] -> [i1][j1][k1] の分裂・遊走確率係数
+double getPcoef(int i0, int j0, int k0, int i1, int j1, int k1);
 // void top_count(world,t);
 // void sq_count(world,t); 
 
@@ -321,7 +329,7 @@ void nextt(int t_count){
 	for (i=0;i<=N-1;++i) {
 		for (j=0;j<=N-1;++j) {
 			for (k=0;k<=H-1;++k) {
-				if (number[i][j][k] == 0) {
+				if (number[i][j][k] != 2) {
 					switch (t_count%4){
 						case 1:
 							completion(i, j, k);
@@ -419,18 +427,30 @@ void nextt(int t_count){
 void calcnext(int i,int j,int k){
 	int action;
 	int type = world[i][j][k];
-	int i0, j0, k0, i1, j1, k1;
-	int si, sj, sk;
-	int di, dj, dk;
-	double p = 0;				//確率用変数
-	double p_dir = 1;			//方向による確率用変数
-	double p_tem = 0;			//確率用変数
-	double p_all = 0;			//確率係数の合計
-	int count = 0;				//カウント用変数
-	double val = 0.0;			//隣接カウント用変数
-	int Room[3][3][3] = {0};	//周辺の状態を記録
-	int Dir_P[3][3][3] = {0};	//方向バイアスの記録
-	int cond = 1;				//条件用変数
+	int i0, j0, k0, i1, j1, k1, i2, j2, k2;
+
+	//確率用基準変数
+	double Pbdy = 0;
+	//確率係数用一時変数
+	double Ptem = 0;
+	//増殖確率係数の合計
+	double SumPdiv = 0;
+	//遊走確率係数の合計
+	double SumPmig = 0;
+	//増殖確率係数の記録
+	double Pdiv[3][3][3] = {0};
+	//遊走確率係数の記録
+	double Pmig[3][3][3] = {0};
+
+	//生存条件を満たさなければ消滅
+	if (!isViable(i, j, k, type)){
+		world[i][j][k] = 0;
+		number[i][j][k] = 0;
+		return;
+	}
+	if (number[i][j][k] == -1){
+		return;
+	}
 
 	//周辺状態を確認
 	i0 = max(0, i - 1);
@@ -439,200 +459,98 @@ void calcnext(int i,int j,int k){
 	i1 = min(N - 1, i + 1);
 	j1 = min(N - 1, j + 1);
 	k1 = min(H - 1, k + 1);
-	for (si = i0; si <= i1; ++si) {
-		for (sj = j0; sj <= j1; ++sj) {
-			for (sk = k0; sk <= k1; ++sk) {
-				if (world[si][sj][sk] != 0) {
-					count = 0;
-					if(si == i) ++count;
-					if(sj == j) ++count;
-					if(sk == k) ++count;
-					switch (count) {
-						case 0:							//頂点
-							val +=  R_sqrt3;			//確率係数 = 1/sqrt(3)
-							break;
-						case 1:							//辺心
-							val += R_sqrt2;				//確率係数 = 1/sqrt(2)
-							break;
-						default:						//面心
-							val += 1.0;					//確率係数 = 1.0
-							break;
-					}
+	for (i2 = i0; i2 <= i1; ++i2) {
+		for (j2 = j0; j2 <= j1; ++j2) {
+			for (k2 = k0; k2 <= k1; ++k2) {
+				//確率係数とその累積
+				Ptem = getPcoef(i, j, k, i2, j2, k2);
+				//中皮細胞の場合、方向バイアスをかける
+				if (type == 2) {
+					Ptem *= getDvalue(i0, j0, k0, i2, j2, k2); 
 				}
-				else{
-					if (isViable(si, sj, sk, type)) {	//生存可能か
-						Room[si - i0][sj - j0][sk - k0] = 1;
-						p_dir = 1;
-						if (type == 2){
-							p_dir = d_value(i, j, k, si, sj, sk);
-							Dir_P[si - i0][sj - j0][sk - k0] = p_dir;
-						}
-						count = 0;
-						if(si == i) ++count;
-						if(sj == j) ++count;
-						if(sk == k) ++count;
-						switch (count) {
-							case 0:							//頂点
-								p_all += p_dir * R_sqrt3;	//確率係数 = 1/sqrt(3)
-								break;
-							case 1:							//辺心
-								p_all += p_dir * R_sqrt2;	//確率係数 = 1/sqrt(2)
-								break;
-							default:						//面心
-								p_all += p_dir;				//確率係数 = 1.0
-								break;
-						}
-					}
+				//遊走確率係数の累積
+				Pmig[i2 - i0][j2 - j0][k2 - k0] = Ptem;
+				SumPmig += Ptem;
+				//空セルなら増殖確率係数の累積
+				if (world[i2][j2][k2] == 0 && isViable(i2, j2, k2, type)) {
+					Pdiv[i2 - i0][j2 - j0][k2 - k0] = Ptem;
+					SumPdiv += Ptem;
 				}
 			}
 		}
 	}
-
-	//生存条件より小さければ消滅
-	if (val < Survival_cond) {
-		world[i][j][k] = 0;
-		number[i][j][k] = 0;
-		return;
-	}
-	if (number[i][j][k] == -1){
-		return;
-	}
-	if (p_all == 0) {
-		//番号の更新
-		++number[i][j][k];
-		if (number[i][j][k] > Tf) {
-			if(genrand_real1() <=  P_sleep){
-    			number[i][j][k] = -1;
-    		}
-    		else{
-    			number[i][j][k] = 1;
-    		}
-		}
-		return;
-	}
-	//空いているセルがない<<
-
-	//空いているセルがある>>
-	//行動を決定
+	
 	action = f_action(i, j, k);
 	if (action == 0) {
 		++number[i][j][k];
 		return;
 	}
-	p_tem = 0;
-	cond = 0;
-	count = 0;
-	//分裂
+
+	Ptem = 0;
+	//分裂の場合
 	if (action == 1) {
-		p = genrand_real1() * p_all;			//正規化;
-		for (si = i0; si <= i1; ++si) {
-			for (sj = j0; sj <= j1; ++sj) {
-				for (sk = k0; sk <= k1; ++sk) {
-					if (world[si][sj][sk] != 0 || cond) {
-						continue;
-					}
-					//生存制約
-					if (Room[si - i0][sj - j0][sk - k0] != 1) {
-						continue;
-					}
-					p_dir = 1;
-					//中皮細胞の方向バイアス
-					if (type == 2){
-						p_dir = Dir_P[si - i0][sj - j0][sk - k0];
-					}
-					count = 0;
-					if (si == i) ++count;
-					if (sj == j) ++count;
-					if (sk == k) ++count;
-					switch (count) {
-						case 0:							//頂点
-							p_tem += p_dir * R_sqrt3;	//確率係数 = 1/sqrt(3)
-							break;
-						case 1:							//辺心
-							p_tem += p_dir * R_sqrt2;	//確率係数 = 1/sqrt(2)
-							break;
-						case 2:							//面心
-							p_tem += p_dir;				//確率係数 = 1.0
-							break;
-						default:						//中心
-							break;						//確率係数 = 0
-					}
-					if (p_tem >= p) {					//分裂方向決定
-						di = si;
-						dj = sj;
-						dk = sk;
-						cond = 1;
-						break;
-					}
-				}
-			}
-		}
-		//番号の更新//
-		if (cond){
-			world[di][dj][dk] = type;
-    		number[di][dj][dk] = 1;
+		Pbdy = genrand_real1() * SumPdiv;
+		if (SumPdiv == 0) {
 			if (genrand_real1() <=  P_sleep) {
     			number[i][j][k] = -1;
     		}
     		else{
     			number[i][j][k] = 1;
     		}
+			return;
 		}
-	}
-
-	//遊走//
-    else if (action == 2) {
-		// p = genrand_real1() * P_room;
-		p = genrand_real1() * p_all;
-		for (si = i0; si <= i1; ++si) {
-			for (sj = j0; sj <= j1; ++sj) {
-				for (sk = k0; sk <= k1; ++sk) {
-					if (world[si][sj][sk] != 0 || cond) {
-						continue;				
-					}
-					//中皮細胞の増殖制約
-					if (Room[si - i0][sj - j0][sk - k0] != 1) {
+		for (i2 = i0; i2 <= i1; ++i2) {
+			for (j2 = j0; j2 <= j1; ++j2) {
+				for (k2 = k0; k2 <= k1; ++k2) {
+					Ptem += Pdiv[i2 - i0][j2 - j0][k2 - k0];
+					if (Ptem < Pbdy) {
 						continue;
 					}
-					p_dir = 1;
-					//中皮細胞の方向バイアス
-					if (type == 2){
-						p_dir = Dir_P[si - i0][sj - j0][sk - k0];
-					}
-					count = 0;
-					if (si == i) ++count;
-					if (sj == j) ++count;
-					if (sk == k) ++count;
-					switch (count) {
-						case 0:							//頂点
-							p_tem += p_dir * R_sqrt3;	//確率係数 = 1/sqrt(3)
-							break;
-						case 1:							//辺心
-							p_tem += p_dir * R_sqrt2;	//確率係数 = 1/sqrt(2)
-							break;
-						case 2:							//面心
-							p_tem += p_dir;				//確率係数 = 1.0
-							break;
-						default:						//中心
-							break;						//確率係数 = 0
-					}
-					if (p_tem >= p) {
-						di = si;
-						dj = sj;
-						dk = sk;
-						cond = 1;
-						break;
-					}
+					world[i2][j2][k2] = type;
+					if (genrand_real1() <=  P_sleep) {
+    					number[i][j][k] = -1;
+    				}
+    				else{
+    					number[i][j][k] = 1;
+    				}
+					if (genrand_real1() <=  P_sleep) {
+    							number[i2][j2][k2] = -1;
+    				}
+    				else{
+    					number[i2][j2][k2] = 1;
+    				}
+					return;
 				}
 			}
 		}
-		if (cond){
-			world[di][dj][dk] = type;
-			number[di][dj][dk] = number[i][j][k] + 1;
-			world[i][j][k] = 0;
-			number[i][j][k] = 0;
+	}
+	//遊走の場合
+	else if (action == 2) {
+		Pbdy = genrand_real1() * SumPmig;
+		if (SumPmig == 0) {
+			++number[i][j][k];
+			return;
 		}
-    }
+		for (i2 = i0; i2 <= i1; ++i2) {
+			for (j2 = j0; j2 <= j1; ++j2) {
+				for (k2 = k0; k2 <= k1; ++k2) {
+					Ptem += Pmig[i2 - i0][j2 - j0][k2 - k0];
+					if (Ptem >= Pbdy) {
+						if (world[i2][j2][k2] != 0) {
+							++number[i][j][k];
+							return;
+						}
+						world[i2][j2][k2] = type;
+						number[i2][j2][k2] = number[i][j][k] + 1;
+						world[i][j][k] = 0;
+						number[i][j][k] = 0;
+						return;
+					}
+
+				}
+			}
+		}
+	}
 }
 
 int f_action(int i, int j, int k){
@@ -669,9 +587,10 @@ int f_action(int i, int j, int k){
 	return 0;								//静止
 }
 
-int isViable(int i, int j, int k, int type){
-	double val = 0.0;
-	double val2 = 0.0;
+int isViable (int i, int j, int k, int type) {
+	double tem = 0;
+	double val = 0;
+	double val2 = 0;
 	int count = 0;
 	int i0 = max(0, i - 1);
 	int j0 = max(0, j - 1);
@@ -707,15 +626,21 @@ int isViable(int i, int j, int k, int type){
 					if(sj == j) ++count;
 					if(sk == k) ++count;
 					switch (count) {
-						case 0:						//頂点
-							val += R_sqrt3;			//確率係数 = 1/sqrt(3)
+						//頂点の確率係数 = 1/sqrt(3)
+						case 0:						
+							val += R_sqrt3;			
 							break;
-						case 1:						//辺心
-							val += R_sqrt2;			//確率係数 = 1/sqrt(2)
+						//辺心nの確率係数 = 1/sqrt(2)
+						case 1:						
+							val += R_sqrt2;			
 							break;
-						default:					//面心
-							val += 1.0;				//確率係数 = 1.0
+						//面心の確率係数 = 1.0
+						case 2:						
+							val += 1.0;				
 							break;
+						//中心確率係数 = 0.0
+						default:					
+							break;				
 					}
 				}
 			}
@@ -747,39 +672,37 @@ int isViable(int i, int j, int k, int type){
 					if (world[si][sj][sk] == 0) {
 						continue;
 					}
+					tem = 0;
 					count = 0;
 					if(si == i) ++count;
 					if(sj == j) ++count;
 					if(sk == k) ++count;
 					switch (count) {
-						case 0:						//頂点
-							val += R_sqrt3;			//確率係数 = 1/sqrt(3)
+						//頂点の確率係数 = 1/sqrt(3)
+						case 0:						
+							tem = R_sqrt3;			
 							break;
-						case 1:						//辺心
-							val += R_sqrt2;			//確率係数 = 1/sqrt(2)
+						//辺心nの確率係数 = 1/sqrt(2)
+						case 1:						
+							tem = R_sqrt2;			
 							break;
-						default:					//面心
-							val += 1.0;				//確率係数 = 1.0
+						//面心の確率係数 = 1.0
+						case 2:						
+							tem = 1.0;				
 							break;
+						//中心確率係数 = 0.0
+						default:					
+							break;				
 					}
-					//線維芽細胞が隣接する
+					val += tem;
+					//線維芽細胞が隣接する			
 					if (world[si][sj][sk] == 1) {
-						switch (count) {
-							case 0:						//頂点
-								val2 += R_sqrt3;		//確率係数 = 1/sqrt(3)
-								break;
-							case 1:						//辺心
-								val2 += R_sqrt2;		//確率係数 = 1/sqrt(2)
-								break;
-							default:					//面心
-								val2 += 1.0;			//確率係数 = 1.0
-								break;
-						}
+						val2 += tem;
 					}
 				}
 			}
 		}
-		if (val >= Survival_cond && val2 >= 2.0) {
+		if (val >= Survival_cond && val2 >= Survival_cond2) {
 			return 1;
 		}
 		else {
@@ -789,7 +712,7 @@ int isViable(int i, int j, int k, int type){
 	
 }
 
-double d_value(int i0, int j0, int k0, int i1, int j1, int k1){
+double getDvalue(int i0, int j0, int k0, int i1, int j1, int k1){
 	double dist0;		//出発地点と中心の距離
 	double dist1;		//目的地点と中心の距離
 	int count;
@@ -822,19 +745,21 @@ void completion(int i, int j, int k) {
 	int i1 = min(N - 1, i + 1);
 	int j1 = min(N - 1, j + 1);
 	int k1 = min(H - 1, k + 1);
-	int si, sj, sk;
+	int i2, j2, k2;
 	int count0 = 0;
 	int count1 = 0;
 	int val = 0;
+	//分散
+	double disp[3] = {0};
 
-	for (si = i0; si <= i1; ++si) {
-		for (sj = j0; sj <= j1; ++sj) {
-			for (sk = k0; sk <= k1; ++sk) {
+	for (i2 = i0; i2 <= i1; ++i2) {
+		for (j2 = j0; j2 <= j1; ++j2) {
+			for (k2 = k0; k2 <= k1; ++k2) {
 				if (world[i][j][k] == 2) {
 					count0 = 0;
-					if(si == i) ++count0;
-					if(sj == j) ++count0;
-					if(sk == k) ++count0;
+					if(i2 == i) ++count0;
+					if(j2 == j) ++count0;
+					if(k2 == k) ++count0;
 					switch (count0) {
 						case 0:						//頂点
 							val += R_sqrt3;			//確率係数 = 1/sqrt(3)
@@ -846,13 +771,15 @@ void completion(int i, int j, int k) {
 							val += 1.0;				//確率係数 = 1.0
 							break;
 					}
-					break;							//同じ高さでは１度のみ
+					disp[0] += pow(i - i2, 2.0) / 9;
+					disp[1] += pow(j - j2, 2.0) / 9;
+					disp[2] += pow(k - k2, 2.0) / 9;
 				}
 				else if (world[i][j][k] == 1 && !count1){
 					count0 = 0;
-					if (si == i) ++count0;
-					if (sj == j) ++count0;
-					if (sk == k) ++count0;
+					if (i2 == i) ++count0;
+					if (j2 == j) ++count0;
+					if (k2 == k) ++count0;
 					if (count0 = 2) {
 						count1 = 1;
 					}
@@ -860,8 +787,27 @@ void completion(int i, int j, int k) {
 			}
 		}
 	}
-	if (val > 4.5 && count1 > 0){
-		world[i][j][k] = 2;
-		number[i][j][k] = genrand_int32()%Tf_m + 1;
+	count0 = 0;
+	for (i2 = 0; i2 <= 2; ++i2) {
+		if (disp[i] < Disp_cond && val > Completion_coef && count1 != 0) {
+			world[i][j][k] = 2;
+			number[i][j][k] = genrand_int32()%Tf_m + 1;
+			return;
+		}
+	}
+}
+
+double getPcoef (int i0, int j0, int k0, int i1, int j1, int k1) {
+	int count = 0;
+	if(i1 == i0) ++count;
+	if(j1 == j0) ++count;
+	if(k1 == k0) ++count;
+	switch (count) {
+		case 0:							//頂点
+			return R_sqrt3;				//確率係数 = 1/sqrt(3)
+		case 1:							//辺心
+			return R_sqrt2;				//確率係数 = 1/sqrt(2)
+		default:						//面心
+			return 1.0;				//確率係数 = 1.0
 	}
 }
