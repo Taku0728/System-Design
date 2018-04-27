@@ -24,21 +24,21 @@
 #define P_f_migration (0.3) //線維芽細胞の遊走確率
 #define P_m_migration (0.7) //中皮細胞の遊走確率
 #define Survival_cond (5) //生存可能な周囲細胞数
-#define Survival_cond2 (2.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
-#define Dir_val (3.0) //中皮細胞の増殖・遊走の方向バイアス
-#define Completion_min (4.5) //中皮細胞の補填に必要な周囲の中皮細胞数の最小
+#define Survival_cond2 (1.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
+#define Dir_val (2.0) //中皮細胞の増殖・遊走の方向バイアス
+#define Completion_min (4) //中皮細胞の補填に必要な周囲の中皮細胞数の最小
 #define Completion_max (8) //中皮細胞の補填に必要な周囲の中皮細胞数の最大
 #define Disp_cond (3.0) //線と判断する分散
 
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
 
-#define N (51) //傷の大きさ
-#define H (25) 	//組織の距離
+#define N (201) //傷の大きさ
+#define H (51) //組織の距離
 #define TMPFILE "tempfile.tmp" //一時ファイル//
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (2) //初期待ち時間(s)//
-#define INTERVAL (1.5) //待ち時間(s)//
+#define INTERVAL (0.5) //待ち時間(s)//
 
 int world[N][N][H] = {0}; //セルの状態//
 int nextworld[N][N][H] = {0}; //次のセルの状態//
@@ -78,7 +78,7 @@ int main(int argc,char *argv[]){
 	init_genrand((unsigned)time(NULL)); //乱数の初期化//
 	
 	scale = Tf/22; //1hあたりの遊走距離(20ミクロン×scale)//
-	MAXT = scale*300; //7日間のシミュレーション//
+	MAXT = scale*1000; //7日間のシミュレーション//
 
     //初期条件//
 	printf("t = 0 h\n");
@@ -95,7 +95,6 @@ int main(int argc,char *argv[]){
 	fprintf(pipe,"set xrange [-10:%d]\n",N+10);
 	fprintf(pipe,"set yrange [-10:%d]\n",N+10);
 	fprintf(pipe,"set zrange [0:%d]\n",H);
-	fprintf(pipe, "set size rectangular\n");
 	fprintf(pipe, "unset xtics\n");
 	fprintf(pipe, "unset ytics\n");
 	fprintf(pipe, "unset ztics\n");
@@ -139,7 +138,7 @@ int main(int argc,char *argv[]){
 			if((genrand_int32()%100 + 1) <= P_spring){
 				spring(world,number); //湧き出し//
 			}
-			spring();	
+			spring();
 		}
 		//状態更新//
 		nextt(t_count);
@@ -325,7 +324,7 @@ void nextt(int t_count){
 		}
 	}	
 	
-	//空きの補完
+	// 空きの補完
 	for (i=0;i<=N-1;++i) {
 		for (j=0;j<=N-1;++j) {
 			for (k=0;k<=H-1;++k) {
@@ -360,8 +359,6 @@ void nextt(int t_count){
 			}
 		}
 	}	
-
-
 
 	//境界条件・中皮細胞//
 	for(i=0;i<=N-1;i++){
@@ -433,6 +430,8 @@ void calcnext(int i,int j,int k){
 	double Pbdy = 0;
 	//確率係数用一時変数
 	double Ptem = 0;
+	//確率係数の合計
+	double SumPval = 0;
 	//増殖確率係数の合計
 	double SumPdiv = 0;
 	//遊走確率係数の合計
@@ -441,16 +440,6 @@ void calcnext(int i,int j,int k){
 	double Pdiv[3][3][3] = {0};
 	//遊走確率係数の記録
 	double Pmig[3][3][3] = {0};
-
-	//生存条件を満たさなければ消滅
-	if (!isViable(i, j, k, type)){
-		world[i][j][k] = 0;
-		number[i][j][k] = 0;
-		return;
-	}
-	if (number[i][j][k] == -1){
-		return;
-	}
 
 	//周辺状態を確認
 	i0 = max(0, i - 1);
@@ -464,9 +453,10 @@ void calcnext(int i,int j,int k){
 			for (k2 = k0; k2 <= k1; ++k2) {
 				//確率係数とその累積
 				Ptem = getPcoef(i, j, k, i2, j2, k2);
+				SumPval += Ptem;
 				//中皮細胞の場合、方向バイアスをかける
 				if (type == 2) {
-					Ptem *= getDvalue(i0, j0, k0, i2, j2, k2); 
+					Ptem *= getDvalue(i, j, k, i2, j2, k2); 
 				}
 				//遊走確率係数の累積
 				Pmig[i2 - i0][j2 - j0][k2 - k0] = Ptem;
@@ -478,6 +468,16 @@ void calcnext(int i,int j,int k){
 				}
 			}
 		}
+	}
+
+	//生存条件を満たさなければ消滅
+	if (SumPval < Survival_cond){
+		world[i][j][k] = 0;
+		number[i][j][k] = 0;
+		return;
+	}
+	if (number[i][j][k] == -1){
+		return;
 	}
 	
 	action = f_action(i, j, k);
@@ -645,7 +645,7 @@ int isViable (int i, int j, int k, int type) {
 		if (k < (H - 1)/2) {
 			for (i2 = i0; i2 <= i1; ++i2) {
 				for (j2 = j0; j2 <= j1; ++j2) {
-					if (world[i2][j2][k1] == 2 || world[i2][j2][min(H - 1, k1 + 1)] == 2) {
+					if (world[i2][j2][k1] == 1 || world[i2][j2][min(H - 1, k1 + 1)] == 1) {
 						return 0;
 					}
 				}
@@ -661,8 +661,8 @@ int isViable (int i, int j, int k, int type) {
 			}
 		}
 		for (i2 = i0; i2 <= i1; ++i2) {
-			for (j2 = j0; j2 <= j2; ++j2) {
-				for (k2 = k0; k2 <= k2; ++k2) {
+			for (j2 = j0; j2 <= j1; ++j2) {
+				for (k2 = k0; k2 <= k1; ++k2) {
 					if (world[i2][j2][k2] == 0) {
 						continue;
 					}
@@ -743,9 +743,15 @@ void completion(int i, int j, int k) {
 
 double getPcoef (int i0, int j0, int k0, int i1, int j1, int k1) {
 	int count = 0;
-	if(i1 == i0) ++count;
-	if(j1 == j0) ++count;
-	if(k1 == k0) ++count;
+	if(i1 == i0) {
+		++count;
+	}
+	if(j1 == j0) {
+		++count;
+	}
+	if(k1 == k0) {
+		++count;
+	}
 	switch (count) {
 		case 0:							//頂点
 			return R_sqrt3;				//確率係数 = 1/sqrt(3)
