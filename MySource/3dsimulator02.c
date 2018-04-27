@@ -24,7 +24,7 @@
 #define P_f_migration (0.3) //線維芽細胞の遊走確率
 #define P_m_migration (0.7) //中皮細胞の遊走確率
 #define Survival_cond (5) //生存可能な周囲細胞数
-#define Survival_cond2 (1.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
+#define Survival_cond2 (2.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
 #define Dir_val (2.0) //中皮細胞の増殖・遊走の方向バイアス
 #define Completion_min (4) //中皮細胞の補填に必要な周囲の中皮細胞数の最小
 #define Completion_max (8) //中皮細胞の補填に必要な周囲の中皮細胞数の最大
@@ -33,8 +33,8 @@
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
 
-#define N (201) //傷の大きさ
-#define H (51) //組織の距離
+#define N (51) //傷の大きさ
+#define H (25) //組織の距離
 #define TMPFILE "tempfile.tmp" //一時ファイル//
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (2) //初期待ち時間(s)//
@@ -50,11 +50,15 @@ void nextt(int t_count); //状態更新//
 void calcnext(int i, int j, int k);	//ルール適用//
 void spring();
 void completion(int i, int j, int k);	//空きの補完
+//配列のシャッフル
+void randsortarray(int *a);
 
 //行動（分裂・遊走・静止）の決定
 int f_action(int i, int j, int k); 				
-//隣合う遷移細胞が存在するか
-int isViable(int i, int j, int k, int type);	
+//生存可能かの判断
+int isViable(int i, int j, int k, int type);
+//存続可能かの判断
+int isSurvival(int i, int j, int k, int type);
 //向かう方向の期待値
 double getDvalue(int i0, int j0, int k0, int i1, int j1, int j3);			
 //[i0][j0][k0] -> [i1][j1][k1] の分裂・遊走確率係数
@@ -288,77 +292,30 @@ void nextt(int t_count){
 	// 		}
 	// 	}
 	// }
-	//状態更新を開始する正方形の頂点を決定//
-	for (i=0;i<=N-1;++i) {
-		for (j=0;j<=N-1;++j) {
-			for (k=0;k<=H-1;++k) {
-				if (number[i][j][k] != 0) {
-					switch (t_count%4){
-						case 1:
-							calcnext(i, j, k);
-							break;
-						case 2:
-							calcnext(N - 1 - i, j, k);
-							break;
-						case 3:
-							calcnext(i, N - 1 - j, k);
-							break;
-						case 4:
-							calcnext(N - 1 - i, N - 1 - j, k);
-							break;
-						case 5:
-							calcnext(i, j, H - 1 - k);
-							break;
-						case 6:
-							calcnext(N - 1 - i, j, H - 1 - k);
-							break;
-						case 7:
-							calcnext(i, N - 1 - j, H - 1 - k);
-							break;
-						default:
-							calcnext(N - 1 - i, N - 1 - j, H - 1 - k);
-							break;
-					}
-				}
-			}
-		}
-	}	
+	
+	//細胞の更新順をランダムに
+	int n;
+	int a[N*N*H];
+	for (n = 0; n <= N*N*H - 1; ++n) {
+		a[n] = n;
+	}
+	randsortarray(a);
+	//ルール適用
+	for (n = 0; n <= N*N*H - 1; ++n) {
+		i = n/(N*H);
+		j = (n - i*N*H)/H;
+		k = n - i*N*H - j*H;
+		calcnext(i, j, k);
+	}
 	
 	// 空きの補完
-	for (i=0;i<=N-1;++i) {
-		for (j=0;j<=N-1;++j) {
-			for (k=0;k<=H-1;++k) {
-				if (number[i][j][k] != 2) {
-					switch (t_count%4){
-						case 1:
-							completion(i, j, k);
-							break;
-						case 2:
-							completion(N - 1 - i, j, k);
-							break;
-						case 3:
-							completion(i, N - 1 - j, k);
-							break;
-						case 4:
-							completion(N - 1 - i, N - 1 - j, k);
-							break;
-						case 5:
-							completion(i, j, H - 1 - k);
-							break;
-						case 6:
-							completion(N - 1 - i, j, H - 1 - k);
-							break;
-						case 7:
-							completion(i, N - 1 - j, H - 1 - k);
-							break;
-						default:
-							completion(N - 1 - i, N - 1 - j, H - 1 - k);
-							break;
-					}
-				}
-			}
-		}
-	}	
+	for (n = 0; n <= N*N*H - 1; ++n) {
+		i = n/(N*H);
+		j = (n - i*N*H)/H;
+		k = n - i*N*H - j*H;
+		completion(i, j, k);
+	}
+
 
 	//境界条件・中皮細胞//
 	for(i=0;i<=N-1;i++){
@@ -587,7 +544,7 @@ int f_action(int i, int j, int k){
 	return 0;								//静止
 }
 
-int isViable (int i, int j, int k, int type) {
+int isViable(int i, int j, int k, int type) {
 	double tem = 0;
 	double val = 0;
 	double val2 = 0;
@@ -685,6 +642,43 @@ int isViable (int i, int j, int k, int type) {
 	
 }
 
+int isSurvival(int i, int j, int k, int type) {
+	double tem = 0;
+	double val = 0;
+	double val2 = 0;
+	int i0 = max(0, i - 1);
+	int j0 = max(0, j - 1);
+	int k0 = max(0, k - 1);
+	int i1 = min(N - 1, i + 1);
+	int j1 = min(N - 1, j + 1);
+	int k1 = min(H - 1, k + 1);
+	int i2, j2, k2;
+	
+	for (i2 = i0; i2 <= i1; ++i2) {
+		for (j2 = j0; j2 <= j1; ++j2) {
+			for (k2 = k0; k2 <= k1; ++k2) {
+				if (world[i2][j2][k2] == 0) {
+					continue;
+				}
+				tem = getPcoef(i, j, k, i2, j2, k2);
+				val += tem;
+				if (type == 2 && world[i2][j2][k2] == 1) {
+					val2 += tem;
+				}
+			}
+		}
+	}
+	if (val >= Survival_cond) {
+		if (type == 1) {
+			return 1;
+		}
+		else if (val2 >= Survival_cond2) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
 double getDvalue(int i0, int j0, int k0, int i1, int j1, int k1){
 	double dist0;		//出発地点と中心の距離
 	double dist1;		//目的地点と中心の距離
@@ -761,5 +755,16 @@ double getPcoef (int i0, int j0, int k0, int i1, int j1, int k1) {
 			return 1.0;					//確率係数 = 1.0
 		default:						//中心
 			return 0;					//確率係数 = 0
+	}
+}
+
+void randsortarray (int *a) {
+	int len = sizeof(a);
+	int i, j, tem;
+	for (i = 0; i <= len - 1; ++i) {
+		j = genrand_int32()%len;
+		tem = a[i];
+		a[i] = a[j];
+		a[j] = tem;
 	}
 }

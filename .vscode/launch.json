@@ -8,7 +8,7 @@
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/MySource/3d_simulator02.exe",
+            "program": "${workspaceFolder}/MySource/3dsimulator02.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
