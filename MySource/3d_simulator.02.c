@@ -26,14 +26,15 @@
 #define Survival_cond (5) //生存可能な周囲細胞数
 #define Survival_cond2 (2.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
 #define Dir_val (3.0) //中皮細胞の増殖・遊走の方向バイアス
-#define Completion_coef (4.5) //中皮細胞の補填に必要な周囲の中皮細胞数
-#define Disp_cond (4.0) //線と判断する分散
+#define Completion_min (4.5) //中皮細胞の補填に必要な周囲の中皮細胞数の最小
+#define Completion_max (8) //中皮細胞の補填に必要な周囲の中皮細胞数の最大
+#define Disp_cond (3.0) //線と判断する分散
 
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
 
-#define N (201) //傷の大きさ
-#define H (51) 	//組織の距離
+#define N (51) //傷の大きさ
+#define H (25) 	//組織の距離
 #define TMPFILE "tempfile.tmp" //一時ファイル//
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (2) //初期待ち時間(s)//
@@ -732,7 +733,7 @@ void completion(int i, int j, int k) {
 	}
 	count0 = 0;
 	for (i2 = 0; i2 <= 2; ++i2) {
-		if (disp[i2] < Disp_cond && val > Completion_coef && count1 != 0) {
+		if (disp[i2] < Disp_cond && val < Completion_max && Completion_min < val && count1 != 0) {
 			world[i][j][k] = 2;
 			number[i][j][k] = genrand_int32()%Tf_m + 1;
 			return;
