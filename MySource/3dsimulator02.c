@@ -23,7 +23,7 @@
 #define P_m_division (1.0) //中皮細胞の分裂確率
 #define P_f_migration (0.3) //線維芽細胞の遊走確率
 #define P_m_migration (0.7) //中皮細胞の遊走確率
-#define Survival_cond (5) //生存可能な周囲細胞数
+#define Survival_cond (5.0) //生存可能な周囲細胞数
 #define Survival_cond2 (2.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
 #define Dir_val (2.0) //中皮細胞の増殖・遊走の方向バイアス
 #define Completion_min (4) //中皮細胞の補填に必要な周囲の中皮細胞数の最小
@@ -33,12 +33,12 @@
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
 
-#define N (51) //傷の大きさ
-#define H (25) //組織の距離
+#define N (11) //傷の大きさ
+#define H (10) //組織の距離
 #define TMPFILE "tempfile.tmp" //一時ファイル//
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (2) //初期待ち時間(s)//
-#define INTERVAL (0.5) //待ち時間(s)//
+#define INTERVAL (1) //待ち時間(s)//
 
 int world[N][N][H] = {0}; //セルの状態//
 int nextworld[N][N][H] = {0}; //次のセルの状態//
@@ -302,9 +302,9 @@ void nextt(int t_count){
 	randsortarray(a);
 	//ルール適用
 	for (n = 0; n <= N*N*H - 1; ++n) {
-		i = n/(N*H);
-		j = (n - i*N*H)/H;
-		k = n - i*N*H - j*H;
+		i = a[n]/(N*H);
+		j = (a[n] - i*N*H)/H;
+		k = a[n] - i*N*H - j*H;
 		calcnext(i, j, k);
 	}
 	
@@ -316,7 +316,7 @@ void nextt(int t_count){
 		completion(i, j, k);
 	}
 
-
+	
 	//境界条件・中皮細胞//
 	for(i=0;i<=N-1;i++){
 		if(world[i][0][1] != 2){
@@ -395,7 +395,7 @@ void calcnext(int i,int j,int k){
 	double SumPmig = 0;
 	//増殖確率係数の記録
 	double Pdiv[3][3][3] = {0};
-	//遊走確率係数の記録
+	//遊走確率係数の記録	
 	double Pmig[3][3][3] = {0};
 
 	//周辺状態を確認
@@ -410,7 +410,9 @@ void calcnext(int i,int j,int k){
 			for (k2 = k0; k2 <= k1; ++k2) {
 				//確率係数とその累積
 				Ptem = getPcoef(i, j, k, i2, j2, k2);
-				SumPval += Ptem;
+				if (world[i2][j2][k2] == 0) {
+					SumPval += Ptem;
+				}
 				//中皮細胞の場合、方向バイアスをかける
 				if (type == 2) {
 					Ptem *= getDvalue(i, j, k, i2, j2, k2); 
@@ -428,6 +430,7 @@ void calcnext(int i,int j,int k){
 	}
 
 	//生存条件を満たさなければ消滅
+	// if (!isSurvival(i, j, k, type)){
 	if (SumPval < Survival_cond){
 		world[i][j][k] = 0;
 		number[i][j][k] = 0;
