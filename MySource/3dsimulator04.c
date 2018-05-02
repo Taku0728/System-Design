@@ -46,14 +46,13 @@ int min(int a, int b) {
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
 
-
 #define N (51) //傷の大きさ
-#define H (25) //組織の距離
+#define H (11) //組織の距離
 #define TMPFILE "tempfile.tmp" //一時ファイル//
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (2) //初期待ち時間(s)//
 #define INTERVAL (0.5) //待ち時間(s)//
-
+#define FONTSIZE "0.5" //細胞の表示サイズ
 
 int world[N][N][H] = {0}; //セルの状態//
 int nextworld[N][N][H] = {0}; //次のセルの状態//
@@ -127,7 +126,7 @@ int main(int argc,char *argv[]){
 	//グラフに出力//
 	fprintf(pipe, "set title 't = %d h'\n",t);
 	fprintf(pipe, "set title font 'Arial,15'\n");
-	fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps 0.2 pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps 0.2 pt 4 lt 2\n");
+	fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps " FONTSIZE " pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps " FONTSIZE " pt 4 lt 2\n");
 	// fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
 	fflush(pipe);
 	SLEEP(INIT_INTERVAL);
@@ -175,7 +174,7 @@ int main(int argc,char *argv[]){
 		fputworld();
 		fprintf(pipe, "set title 't = %d h'\n",t);
 		fprintf(pipe, "set title font 'Arial,15'\n");
-		fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps 0.2 pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps 0.2 pt 4 lt 2\n");
+		fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps " FONTSIZE " pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps " FONTSIZE " pt 4 lt 2\n");
 		// fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
 		fflush(pipe);
 		SLEEP(INTERVAL);
