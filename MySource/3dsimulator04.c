@@ -4,12 +4,23 @@
 #include <math.h>
 #include "MT.h" //メルセンヌ・ツイスター//
 
-#ifdef __unix__
-#include <unistd.h>
-#elif defined _WIN32
+
+#ifdef _WIN32
 #include <windows.h>
-#define sleep(x) Sleep(1000 * x) //sleep関数の定義//
+#define SLEEP(x) Sleep(1000 * x) //sleep関数の定義//
+#else
+#include <unistd.h>
+#define SLEEP(x) usleep(x * 1000000)
+
+int max(int a, int b) {
+	return a < b ? b : a;
+}
+
+int min(int a, int b) {
+	return a > b ? b : a;
+}
 #endif
+
 
 #define Tf (44) //分裂1回あたりの遊走距離(20ミクロン×Tf)//
 #define Tf_m (44) //中皮細胞
@@ -19,55 +30,62 @@
 // #define P_side 0.2 //横進確率(%)//
 #define P_spring (50) //1hあたりの湧き出し確率(%)//
 
+
 #define P_f_division (0.5) //線維芽細胞の分裂確率
 #define P_m_division (1.0) //中皮細胞の分裂確率
 #define P_f_migration (0.3) //線維芽細胞の遊走確率
 #define P_m_migration (0.7) //中皮細胞の遊走確率
-#define Survival_cond (5.0) //生存可能な周囲細胞数
-#define Survival_cond2 (2.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
+#define Survival_cond (4.0) //生存可能な周囲細胞数
+#define Survival_cond2 (1.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
 #define Dir_val (2.0) //中皮細胞の増殖・遊走の方向バイアス
 #define Completion_min (4) //中皮細胞の補填に必要な周囲の中皮細胞数の最小
 #define Completion_max (8) //中皮細胞の補填に必要な周囲の中皮細胞数の最大
 #define Disp_cond (3.0) //線と判断する分散
 
+
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
+
 
 #define N (51) //傷の大きさ
 #define H (25) //組織の距離
 #define TMPFILE "tempfile.tmp" //一時ファイル//
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (2) //初期待ち時間(s)//
-#define INTERVAL (1) //待ち時間(s)//
+#define INTERVAL (0.5) //待ち時間(s)//
+
 
 int world[N][N][H] = {0}; //セルの状態//
 int nextworld[N][N][H] = {0}; //次のセルの状態//
 int number[N][N][H] = {0}; //細胞の状態//
 
+
 void fputworld(); //gnuplot出力//
 void initworld();
 void nextt(int t_count); //状態更新//
-void calcnext(int i, int j, int k);	//ルール適用//
+void calcnext(int i, int j, int k);        //ルール適用//
 void spring();
-void completion(int i, int j, int k);	//空きの補完
+void completion(int i, int j, int k);        //空きの補完
 //配列のシャッフル
-void randsortarray(int *a);
+void randsortarray(int *a,int len);
+
 
 //行動（分裂・遊走・静止）の決定
-int f_action(int i, int j, int k); 				
+int f_action(int i, int j, int k);                                 
 //生存可能かの判断
 int isViable(int i, int j, int k, int type);
 //存続可能かの判断
 int isSurvival(int i, int j, int k, int type);
 //向かう方向の期待値
-double getDvalue(int i0, int j0, int k0, int i1, int j1, int j3);			
+double getDvalue(int i0, int j0, int k0, int i1, int j1, int j3);                        
 //[i0][j0][k0] -> [i1][j1][k1] の分裂・遊走確率係数
 double getPcoef(int i0, int j0, int k0, int i1, int j1, int k1);
 // void top_count(world,t);
 // void sq_count(world,t); 
 
+
 int main(int argc,char *argv[]){
-    int t = 0; //経過時間(h)//
+  int t = 0; //経過時間(h)//
 	int i,j,k;
 	int m_cell = 0; //中皮細胞の個数//
 	int f_cell = 0; //線維芽細胞の個数//
@@ -79,17 +97,20 @@ int main(int argc,char *argv[]){
 	FILE *file;
 	FILE *fp;
 
+
 	init_genrand((unsigned)time(NULL)); //乱数の初期化//
 	
 	scale = Tf/22; //1hあたりの遊走距離(20ミクロン×scale)//
 	MAXT = scale*1000; //7日間のシミュレーション//
 
-    //初期条件//
+
+  //初期条件//
 	printf("t = 0 h\n");
 	initworld();
 	fputworld();
 
-    if((pipe = popen(GNUPLOT " -persist","w")) == NULL){
+
+  if((pipe = popen(GNUPLOT " -persist","w")) == NULL){
 		fprintf(stderr," Cannot open the pipe! \n");
 		exit(1);
 	}
@@ -109,7 +130,7 @@ int main(int argc,char *argv[]){
 	fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps 0.2 pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps 0.2 pt 4 lt 2\n");
 	// fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
 	fflush(pipe);
-	sleep(INIT_INTERVAL);
+	SLEEP(INIT_INTERVAL);
 	
 	//細胞数をカウント//
 	for(i=0;i<=N-1;++i){
@@ -134,6 +155,7 @@ int main(int argc,char *argv[]){
 	fclose(file);
 	
 
+
 	for(t_count=1;t_count<=MAXT;++t_count){
 		if(t_count % scale == 0){
 			t += 1;  //グラフ時間表示更新//
@@ -147,6 +169,7 @@ int main(int argc,char *argv[]){
 		//状態更新//
 		nextt(t_count);
 
+
 		//グラフに出力//
 		printf("t = %d h\n",t);
 		fputworld();
@@ -155,7 +178,7 @@ int main(int argc,char *argv[]){
 		fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps 0.2 pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps 0.2 pt 4 lt 2\n");
 		// fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
 		fflush(pipe);
-		sleep(INTERVAL);
+		SLEEP(INTERVAL);
 	}
 	return 0;
 }
@@ -163,6 +186,7 @@ int main(int argc,char *argv[]){
 void fputworld(){
 	int i,j,k;
 	FILE *fp;
+
 
 	if((fp = fopen(TMPFILE,"w")) == NULL){ 
 		fprintf(stderr," Cannot open the file! \n");
@@ -172,10 +196,10 @@ void fputworld(){
 	//線維芽細胞の位置を出力//
 	for(i=0;i<=N-1;++i){
 		for(j=0;j<=N-1;++j){
-            for (k=0;k<=H-1;++k){
-			    if(world[i][j][k] == 1){ 
-	  	            fprintf(fp,"%d %d %d\n",i,j,k);
-                }
+	  for (k=0;k<=H-1;++k){
+			  if(world[i][j][k] == 1){ 
+				fprintf(fp,"%d %d %d\n",i,j,k);
+		}
 			}
 		}
 	}
@@ -186,10 +210,10 @@ void fputworld(){
 	//中皮細胞の位置を出力//
 	for(i=0;i<=N-1;++i){
 		for(j=0;j<=N-1;++j){
-            for (k=0;k<=H-1;++k){
-			    if(world[i][j][k] == 2){ 
-	  	            fprintf(fp,"%d %d %d\n",i,j,k);
-                }
+	  for (k=0;k<=H-1;++k){
+			  if(world[i][j][k] == 2){ 
+				fprintf(fp,"%d %d %d\n",i,j,k);
+		}
 			}
 		}
 	}
@@ -197,20 +221,22 @@ void fputworld(){
 	fclose(fp);
 }
 
+
 void initworld(){
   int i;
   int j;
   int k;
 
+
 	//初期条件//
-    for(i=0;i<=N-1;++i){
-        for (j=0;j<=N-1;++j){
-            world[i][j][0] = 1;
-		    number[i][j][0] = genrand_int32()%Tf + 1;
-    	    world[i][j][H-1] = 1;
-    	    number[i][j][H-1] = genrand_int32()%Tf + 1;
-        }
-    }
+  for(i=0;i<=N-1;++i){
+	for (j=0;j<=N-1;++j){
+	  world[i][j][0] = 1;
+		  number[i][j][0] = genrand_int32()%Tf + 1;
+		world[i][j][H-1] = 1;
+		number[i][j][H-1] = genrand_int32()%Tf + 1;
+	}
+  }
 	for(i=0;i<=N-1;++i){
 		world[i][0][1] = 2;
 		number[i][0][1] = genrand_int32()%Tf_m + 1;
@@ -230,6 +256,7 @@ void initworld(){
 		number[N-1][i][H-2] = genrand_int32()%Tf_m + 1;
 	}
 }
+
 
 void spring(){
 	int site_x,site_y;
@@ -262,6 +289,7 @@ void spring(){
 		}
 	}
 
+
 	//湧き出しの位置を決定
 	for(i=1;i<=(10000/ (N*N));++i){
 		site_x = genrand_int32()%(N-2) + 1;
@@ -282,16 +310,9 @@ void spring(){
 	}
 }
 
+
 void nextt(int t_count){
 	int i,j,k;
-	
-	// for(i=0;i<=N-1;++i){
-	// 	for(j=0;j<=N-1;++j){
-	// 		for(k=0;k<=H-1;++k){
-	// 			nextworld[i][j][k] = world[i][j][k]; //前状態の引継//
-	// 		}
-	// 	}
-	// }
 	
 	//細胞の更新順をランダムに
 	int n;
@@ -299,13 +320,15 @@ void nextt(int t_count){
 	for (n = 0; n <= N*N*H - 1; ++n) {
 		a[n] = n;
 	}
-	randsortarray(a);
+	randsortarray(a,N*N*H);
 	//ルール適用
 	for (n = 0; n <= N*N*H - 1; ++n) {
 		i = a[n]/(N*H);
 		j = (a[n] - i*N*H)/H;
 		k = a[n] - i*N*H - j*H;
-		calcnext(i, j, k);
+        if (world[i][j][k] != 0) {
+		    calcnext(i, j, k);
+        }
 	}
 	
 	// 空きの補完
@@ -316,7 +339,6 @@ void nextt(int t_count){
 		completion(i, j, k);
 	}
 
-	
 	//境界条件・中皮細胞//
 	for(i=0;i<=N-1;i++){
 		if(world[i][0][1] != 2){
@@ -353,6 +375,7 @@ void nextt(int t_count){
 		}
 	}
 
+
 	//境界条件・線維芽細胞//
 	for(i=0;i<=N-1;++i){
 		for(j=0;j<=N-1;++j){
@@ -369,19 +392,21 @@ void nextt(int t_count){
 	
 	//状態更新//
 	// for(i=0;i<=N-1;++i){
-	// 	for(j=0;j<=N-1;++j){
-	// 		for (k=0;k<=H-1;++k){
-	// 			world[i][j][k] = nextworld[i][j][k];
-	// 		}
-	// 	}
+	//         for(j=0;j<=N-1;++j){
+	//                 for (k=0;k<=H-1;++k){
+	//                         world[i][j][k] = nextworld[i][j][k];
+	//                 }
+	//         }
 	// }
 	
 }
+
 
 void calcnext(int i,int j,int k){
 	int action;
 	int type = world[i][j][k];
 	int i0, j0, k0, i1, j1, k1, i2, j2, k2;
+
 
 	//確率用基準変数
 	double Pbdy = 0;
@@ -395,8 +420,9 @@ void calcnext(int i,int j,int k){
 	double SumPmig = 0;
 	//増殖確率係数の記録
 	double Pdiv[3][3][3] = {0};
-	//遊走確率係数の記録	
+	//遊走確率係数の記録        
 	double Pmig[3][3][3] = {0};
+
 
 	//周辺状態を確認
 	i0 = max(0, i - 1);
@@ -410,12 +436,12 @@ void calcnext(int i,int j,int k){
 			for (k2 = k0; k2 <= k1; ++k2) {
 				//確率係数とその累積
 				Ptem = getPcoef(i, j, k, i2, j2, k2);
-				if (world[i2][j2][k2] == 0) {
+				if (world[i2][j2][k2] != 0) {
 					SumPval += Ptem;
 				}
 				//中皮細胞の場合、方向バイアスをかける
 				if (type == 2) {
-					Ptem *= getDvalue(i, j, k, i2, j2, k2); 
+					Ptem *= getDvalue(i, j, k, i2, j2, k2);
 				}
 				//遊走確率係数の累積
 				Pmig[i2 - i0][j2 - j0][k2 - k0] = Ptem;
@@ -428,6 +454,7 @@ void calcnext(int i,int j,int k){
 			}
 		}
 	}
+
 
 	//生存条件を満たさなければ消滅
 	// if (!isSurvival(i, j, k, type)){
@@ -446,17 +473,18 @@ void calcnext(int i,int j,int k){
 		return;
 	}
 
+
 	Ptem = 0;
 	//分裂の場合
 	if (action == 1) {
 		Pbdy = genrand_real1() * SumPdiv;
 		if (SumPdiv == 0) {
 			if (genrand_real1() <=  P_sleep) {
-    			number[i][j][k] = -1;
-    		}
-    		else{
-    			number[i][j][k] = 1;
-    		}
+				number[i][j][k] = -1;
+			}
+		  	else{
+			  	number[i][j][k] = 1;
+		  	}
 			return;
 		}
 		for (i2 = i0; i2 <= i1; ++i2) {
@@ -468,17 +496,17 @@ void calcnext(int i,int j,int k){
 					}
 					world[i2][j2][k2] = type;
 					if (genrand_real1() <=  P_sleep) {
-    					number[i][j][k] = -1;
-    				}
-    				else{
-    					number[i][j][k] = 1;
-    				}
+					  	number[i][j][k] = -1;
+					}
+				  	else{
+					  	number[i][j][k] = 1;
+				  	}
 					if (genrand_real1() <=  P_sleep) {
-    							number[i2][j2][k2] = -1;
-    				}
-    				else{
-    					number[i2][j2][k2] = 1;
-    				}
+						number[i2][j2][k2] = -1;
+				  	}
+				  	else{
+					  	number[i2][j2][k2] = 1;
+				  	}
 					return;
 				}
 			}
@@ -496,7 +524,7 @@ void calcnext(int i,int j,int k){
 				for (k2 = k0; k2 <= k1; ++k2) {
 					Ptem += Pmig[i2 - i0][j2 - j0][k2 - k0];
 					if (Ptem >= Pbdy) {
-						if (world[i2][j2][k2] != 0) {
+						if (world[i2][j2][k2] != 0 || Pdiv[i2 - i0][j2 - j0][k2 - k0] == 0) {
 							++number[i][j][k];
 							return;
 						}
@@ -507,45 +535,48 @@ void calcnext(int i,int j,int k){
 						return;
 					}
 
+
 				}
 			}
 		}
 	}
 }
 
+
 int f_action(int i, int j, int k){
 	int type = world[i][j][k];
 	double p_div;
 	int Tf_tem;
 	if (type == 1) {
-		p_div = P_f_division;				//線維芽細胞
+		p_div = P_f_division;                                //線維芽細胞
 		Tf_tem = Tf;
-	}	
+	}        
 	else {
-		p_div = P_m_division;				//中皮細胞
+		p_div = P_m_division;                                //中皮細胞
 		Tf_tem = Tf_m;
 	}
 	//分裂周期(M)かどうか
 	if(number[i][j][k] == Tf_tem) {
 		if (genrand_real1() <= p_div){
-			return 1;						//分裂
+			return 1;                                                //分裂
 		}
 		else {
 			number[i][j][k] = 1;
-		}					
+		}                                        
 	}
 	if (type == 1){
 		if (genrand_real1() <= P_f_migration) {
-			return 2;							//遊走
+			return 2;                                                        //遊走
 		}
 	}
 	else {
 		if (genrand_real1() <= P_m_migration) {
-			return 2;							//遊走
+			return 2;                                                        //遊走
 		}
 	}
-	return 0;								//静止
+	return 0;                                                                //静止
 }
+
 
 int isViable(int i, int j, int k, int type) {
 	double tem = 0;
@@ -565,9 +596,7 @@ int isViable(int i, int j, int k, int type) {
 		if (k < (H - 1)/2) {
 			for (i2 = i0; i2 <= i1; ++i2) {
 				for (j2 = j0; j2 <= j1; ++j2) {
-					if (world[i2][j2][k0] == 2 || 
-						world[i2][j2][max(0, k0 - 1)] == 2 ||
-						world[i2][j2][max(0, k0 - 2)] == 2) {
+					if (world[i2][j2][k0] == 2 || world[i2][j2][max(0, k0 - 1)] == 2) {
 						return 0;
 					}
 				}
@@ -576,9 +605,7 @@ int isViable(int i, int j, int k, int type) {
 		else {
 			for (i2 = i0; i2 <= i1; ++i2) {
 				for (j2 = j0; j2 <= j1; ++j2) {
-					if (world[i2][j2][k1] == 2 || 
-						world[i2][j2][min(H - 1, k1 + 1)] == 2 ||
-						world[i2][j2][min(H - 1, k1 + 2)] == 2) {
+					if (world[i2][j2][k1] == 2 || world[i2][j2][min(H - 1, k1 + 1)] == 2) {
 						return 0;
 					}
 				}
@@ -603,15 +630,14 @@ int isViable(int i, int j, int k, int type) {
 		}
 	}
 
+
 	//中皮細胞
 	else if (type == 2) {
 		//線維芽細胞の下では増殖できない
 		if (k < (H - 1)/2) {
 			for (i2 = i0; i2 <= i1; ++i2) {
 				for (j2 = j0; j2 <= j1; ++j2) {
-					if (world[i2][j2][k1] == 1 || 
-						world[i2][j2][min(H - 1, k1 + 1)] == 1 ||
-						world[i2][j2][min(H - 1, k1 + 2)] == 1) {
+					if (world[i2][j2][k1] == 1 || world[i2][j2][min(H - 1, k1 + 1)] == 1) {
 						return 0;
 					}
 				}
@@ -620,9 +646,7 @@ int isViable(int i, int j, int k, int type) {
 		else {
 			for (i2 = i0; i2 <= i1; ++i2) {
 				for (j2 = j0; j2 <= j1; ++j2) {
-					if (world[i2][j2][k0] == 1 ||
-						 world[i2][j2][max(0, k0 - 1)] == 1 ||
-						 world[i2][j2][max(0, k0 - 2)] == 1) {
+					if (world[i2][j2][k0] == 1 || world[i2][j2][max(0, k0 - 1)] == 1) {
 						return 0;
 					}
 				}
@@ -652,6 +676,7 @@ int isViable(int i, int j, int k, int type) {
 	}
 	
 }
+
 
 int isSurvival(int i, int j, int k, int type) {
 	double tem = 0;
@@ -690,9 +715,10 @@ int isSurvival(int i, int j, int k, int type) {
 	return 0;
 }
 
+
 double getDvalue(int i0, int j0, int k0, int i1, int j1, int k1){
-	double dist0;		//出発地点と中心の距離
-	double dist1;		//目的地点と中心の距離
+	double dist0;                //出発地点と中心の距離
+	double dist1;                //目的地点と中心の距離
 	int count;
 	double p_tem = 0;
 	dist0 = sqrt(pow(i0 - (N - 1)/2.0, 2.0) + pow(j0 - (N - 1)/2.0, 2.0));
@@ -700,6 +726,7 @@ double getDvalue(int i0, int j0, int k0, int i1, int j1, int k1){
 	p_tem = getPcoef(i0, j0, k0, i1, j1, k1);
 	return pow(Dir_val, (dist0 - dist1) * p_tem);
 }
+
 
 void completion(int i, int j, int k) {
 	int i0 = max(0, i - 1);
@@ -714,6 +741,7 @@ void completion(int i, int j, int k) {
 	int val = 0;
 	//分散
 	double disp[3] = {0};
+
 
 	for (i2 = i0; i2 <= i1; ++i2) {
 		for (j2 = j0; j2 <= j1; ++j2) {
@@ -746,6 +774,7 @@ void completion(int i, int j, int k) {
 	}
 }
 
+
 double getPcoef (int i0, int j0, int k0, int i1, int j1, int k1) {
 	int count = 0;
 	if(i1 == i0) {
@@ -758,19 +787,19 @@ double getPcoef (int i0, int j0, int k0, int i1, int j1, int k1) {
 		++count;
 	}
 	switch (count) {
-		case 0:							//頂点
-			return R_sqrt3;				//確率係数 = 1/sqrt(3)
-		case 1:							//辺心
-			return R_sqrt2;				//確率係数 = 1/sqrt(2)
-		case 2:							//面心
-			return 1.0;					//確率係数 = 1.0
-		default:						//中心
-			return 0;					//確率係数 = 0
+		case 0:                                            //頂点
+			return R_sqrt3;                                //確率係数 = 1/sqrt(3)
+		case 1:                                            //辺心
+			return R_sqrt2;                                //確率係数 = 1/sqrt(2)
+		case 2:                                            //面心
+			return 1.0;                                    //確率係数 = 1.0
+		default:                                           //中心
+			return 0;                                      //確率係数 = 0
 	}
 }
 
-void randsortarray (int *a) {
-	int len = sizeof(a);
+
+void randsortarray (int *a,int len) {
 	int i, j, tem;
 	for (i = 0; i <= len - 1; ++i) {
 		j = genrand_int32()%len;

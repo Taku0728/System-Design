@@ -6,7 +6,9 @@
 
 #ifdef __unix__
 #include <unistd.h>
-#elif defined _WIN32
+#endif
+
+#ifdef _WIN32
 #include <windows.h>
 #define sleep(x) Sleep(1000 * x) //sleep関数の定義//
 #endif
@@ -52,7 +54,7 @@ int f_action(int i, int j, int k); 				//行動（分裂・遊走・静止）の
 int isViable(int i, int j, int k, int type);	//隣合う遷移細胞が存在するか
 double d_value(int i0, int j0, int k0, int i1, int j1, int j3);			//向かう方向の期待値
 // void top_count(world,t);
-// void sq_count(world,t); 
+// void sq_count(world,t);
 
 int main(int argc,char *argv[]){
     int t = 0; //経過時間(h)//
@@ -353,8 +355,6 @@ void nextt(int t_count){
 		}
 	}	
 
-
-
 	//境界条件・中皮細胞//
 	for(i=0;i<=N-1;i++){
 		if(world[i][0][1] != 2){
@@ -383,7 +383,7 @@ void nextt(int t_count){
 		}
 		if(world[0][i][H-2] != 2){
 			world[0][i][H-2] = 2;
-			number[0][i][N-2] = genrand_int32()%Tf_m + 1; //供給細胞の状態//
+			number[0][i][H-2] = genrand_int32()%Tf_m + 1; //供給細胞の状態//
 		}
 		if(world[N-1][i][H-2] != 2){
 			world[N-1][i][H-2] = 2;
