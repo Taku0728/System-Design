@@ -34,20 +34,19 @@ int min(int a, int b) {
 #define P_f_division (0.5) //線維芽細胞の分裂確率
 #define P_m_division (1.0) //中皮細胞の分裂確率
 #define P_f_migration (0.3) //線維芽細胞の遊走確率
-#define P_m_migration (0.7) //中皮細胞の遊走確率
+#define P_m_migration (0.8) //中皮細胞の遊走確率
 #define Survival_cond (4.0) //生存可能な周囲細胞数
 #define Survival_cond2 (1.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
-#define Dir_val (2.0) //中皮細胞の増殖・遊走の方向バイアス
+#define Dir_val (3.0) //中皮細胞の増殖・遊走の方向バイアス
 #define Completion_min (4) //中皮細胞の補填に必要な周囲の中皮細胞数の最小
 #define Completion_max (8) //中皮細胞の補填に必要な周囲の中皮細胞数の最大
 #define Disp_cond (3.0) //線と判断する分散
 
-
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
 
-#define N (51) //傷の大きさ
-#define H (11) //組織の距離
+#define N (101) //傷の大きさ
+#define H (51) //組織の距離
 #define TMPFILE "tempfile.tmp" //一時ファイル//
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (2) //初期待ち時間(s)//
@@ -332,10 +331,12 @@ void nextt(int t_count){
 	
 	// 空きの補完
 	for (n = 0; n <= N*N*H - 1; ++n) {
-		i = n/(N*H);
-		j = (n - i*N*H)/H;
-		k = n - i*N*H - j*H;
+		i = a[n]/(N*H);
+		j = (a[n] - i*N*H)/H;
+		k = a[n] - i*N*H - j*H;
+		if (world[i][j][k] == 0) {
 		completion(i, j, k);
+		}
 	}
 
 	//境界条件・中皮細胞//
@@ -422,7 +423,6 @@ void calcnext(int i,int j,int k){
 	//遊走確率係数の記録        
 	double Pmig[3][3][3] = {0};
 
-
 	//周辺状態を確認
 	i0 = max(0, i - 1);
 	j0 = max(0, j - 1);
@@ -454,10 +454,9 @@ void calcnext(int i,int j,int k){
 		}
 	}
 
-
 	//生存条件を満たさなければ消滅
 	// if (!isSurvival(i, j, k, type)){
-	if (SumPval < Survival_cond){
+	if (SumPval < Survival_cond) {
 		world[i][j][k] = 0;
 		number[i][j][k] = 0;
 		return;
@@ -697,7 +696,7 @@ int isSurvival(int i, int j, int k, int type) {
 				}
 				tem = getPcoef(i, j, k, i2, j2, k2);
 				val += tem;
-				if (type == 2 && world[i2][j2][k2] == 1) {
+				if (world[i2][j2][k2] == 1) {
 					val2 += tem;
 				}
 			}
@@ -735,41 +734,22 @@ void completion(int i, int j, int k) {
 	int j1 = min(N - 1, j + 1);
 	int k1 = min(H - 1, k + 1);
 	int i2, j2, k2;
-	int count0 = 0;
-	int count1 = 0;
 	int val = 0;
-	//分散
-	double disp[3] = {0};
-
 
 	for (i2 = i0; i2 <= i1; ++i2) {
 		for (j2 = j0; j2 <= j1; ++j2) {
 			for (k2 = k0; k2 <= k1; ++k2) {
 				if (world[i][j][k] == 2) {
 					val += getPcoef(i, j, k, i2, j2, k2);
-					disp[0] += pow(i - i2, 2.0) / 9;
-					disp[1] += pow(j - j2, 2.0) / 9;
-					disp[2] += pow(k - k2, 2.0) / 9;
-				}
-				else if (world[i][j][k] == 1 && !count1){
-					count0 = 0;
-					if (i2 == i) ++count0;
-					if (j2 == j) ++count0;
-					if (k2 == k) ++count0;
-					if (count0 == 2) {
-						count1 = 1;
-					}
 				}
 			}
 		}
 	}
-	count0 = 0;
-	for (i2 = 0; i2 <= 2; ++i2) {
-		if (disp[i2] < Disp_cond && val < Completion_max && Completion_min < val && count1 != 0) {
-			world[i][j][k] = 2;
-			number[i][j][k] = genrand_int32()%Tf_m + 1;
-			return;
-		}
+	
+	if (Completion_min < val && val < Completion_max && isViable(i, j, k, 2)) {
+		world[i][j][k] = 2;
+		number[i][j][k] = genrand_int32()%Tf_m + 1;
+		return;
 	}
 }
 
