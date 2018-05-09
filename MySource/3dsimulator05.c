@@ -35,7 +35,7 @@ int min(int a, int b) {
 #define P_m_division (1.0) //中皮細胞の分裂確率
 #define P_f_migration (0.3) //線維芽細胞の遊走確率
 #define P_m_migration (0.8) //中皮細胞の遊走確率
-#define Survival_cond (4.0) //生存可能な周囲細胞数
+#define Survival_cond (3.0) //生存可能な周囲細胞数
 #define Survival_cond2 (1.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
 #define Dir_val (3.0) //中皮細胞の増殖・遊走の方向バイアス
 #define Completion_min (4) //中皮細胞の補填に必要な周囲の中皮細胞数の最小
@@ -45,8 +45,8 @@ int min(int a, int b) {
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
 
-#define N (101) //傷の大きさ
-#define H (51) //組織の距離
+#define N (51) //傷の大きさ
+#define H (21) //組織の距離
 #define TMPFILE "tempfile.tmp" //一時ファイル//
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (2) //初期待ち時間(s)//
