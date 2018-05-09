@@ -754,7 +754,7 @@ void completion(int i, int j, int k) {
 }
 
 
-double getPcoef (int i0, int j0, int k0, int i1, int j1, int k1) {
+double getPcoef(int i0, int j0, int k0, int i1, int j1, int k1) {
 	int count = 0;
 	if(i1 == i0) {
 		++count;
@@ -778,7 +778,7 @@ double getPcoef (int i0, int j0, int k0, int i1, int j1, int k1) {
 }
 
 
-void randsortarray (int *a,int len) {
+void randsortarray(int *a,int len) {
 	int i, j, tem;
 	for (i = 0; i <= len - 1; ++i) {
 		j = genrand_int32()%len;
