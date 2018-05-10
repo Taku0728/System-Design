@@ -33,14 +33,13 @@ int min(int a, int b) {
 
 #define P_f_division (0.5) //線維芽細胞の分裂確率
 #define P_m_division (1.0) //中皮細胞の分裂確率
-#define P_f_migration (0.3) //線維芽細胞の遊走確率
+#define P_f_migration (0.2) //線維芽細胞の遊走確率
 #define P_m_migration (0.8) //中皮細胞の遊走確率
 #define Survival_cond (3.0) //生存可能な周囲細胞数
 #define Survival_cond2 (1.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
-#define Dir_val (3.0) //中皮細胞の増殖・遊走の方向バイアス
+#define Dir_val (2.0) //中皮細胞の増殖・遊走の方向バイアス
 #define Completion_min (4) //中皮細胞の補填に必要な周囲の中皮細胞数の最小
 #define Completion_max (8) //中皮細胞の補填に必要な周囲の中皮細胞数の最大
-#define Disp_cond (3.0) //線と判断する分散
 
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
@@ -51,10 +50,10 @@ int min(int a, int b) {
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (2) //初期待ち時間(s)//
 #define INTERVAL (0.5) //待ち時間(s)//
-#define FONTSIZE "0.5" //細胞の表示サイズ
+#define FONTSIZE "1.2" //細胞の表示サイズ
 
 int world[N][N][H] = {0}; //セルの状態//
-int nextworld[N][N][H] = {0}; //次のセルの状態//
+int prevworld[N][N][H] = {0}; //次のセルの状態//
 int number[N][N][H] = {0}; //細胞の状態//
 
 
@@ -85,6 +84,7 @@ double getPcoef(int i0, int j0, int k0, int i1, int j1, int k1);
 int main(int argc,char *argv[]){
   int t = 0; //経過時間(h)//
 	int i,j,k;
+	int e;
 	int m_cell = 0; //中皮細胞の個数//
 	int f_cell = 0; //線維芽細胞の個数//
 	int t_count; //ステップ//
@@ -164,6 +164,14 @@ int main(int argc,char *argv[]){
 			}
 			spring();
 		}
+		for(i=0;i<=N-1;++i){
+		    for(j=0;j<=N-1;++j){
+		        for (k=0;k<=H-1;++k){
+					prevworld[i][j][k] = world[i][j][k];
+		        }
+		    }
+		}
+
 		//状態更新//
 		nextt(t_count);
 
@@ -177,6 +185,26 @@ int main(int argc,char *argv[]){
 		// fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
 		fflush(pipe);
 		SLEEP(INTERVAL);
+
+		//終了条件//
+		e = N*N/100;
+		for(i=0;i<=N-1;++i){
+		    for(j=0;j<=N-1;++j){
+		        for (k=0;k<=H-1;++k){
+					if (e > 0 && world[i][j][k] != prevworld[i][j][k]){
+						e -= 1;
+					}
+		        }
+		    }
+		}
+		if (e > 0){
+			printf("SIMULATION OVER\n");
+			fprintf(pipe, "set title 't = %d h OVER'\n",t);
+			fprintf(pipe, "set title font 'Arial,15'\n");
+			fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps " FONTSIZE " pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps " FONTSIZE " pt 4 lt 2\n");
+			fflush(pipe);
+			break;
+		}
 	}
 	return 0;
 }
@@ -390,15 +418,6 @@ void nextt(int t_count){
 		}
 	}
 	
-	//状態更新//
-	// for(i=0;i<=N-1;++i){
-	//         for(j=0;j<=N-1;++j){
-	//                 for (k=0;k<=H-1;++k){
-	//                         world[i][j][k] = nextworld[i][j][k];
-	//                 }
-	//         }
-	// }
-	
 }
 
 
@@ -442,11 +461,11 @@ void calcnext(int i,int j,int k){
 				if (type == 2) {
 					Ptem *= getDvalue(i, j, k, i2, j2, k2);
 				}
-				//遊走確率係数の累積
-				Pmig[i2 - i0][j2 - j0][k2 - k0] = Ptem;
-				SumPmig += Ptem;
-				//空セルなら増殖確率係数の累積
 				if (world[i2][j2][k2] == 0 && isViable(i2, j2, k2, type)) {
+					//遊走確率係数の累積
+					Pmig[i2 - i0][j2 - j0][k2 - k0] = Ptem;
+					SumPmig += Ptem;
+					//増殖確率係数の累積
 					Pdiv[i2 - i0][j2 - j0][k2 - k0] = Ptem;
 					SumPdiv += Ptem;
 				}
@@ -532,8 +551,6 @@ void calcnext(int i,int j,int k){
 						number[i][j][k] = 0;
 						return;
 					}
-
-
 				}
 			}
 		}
