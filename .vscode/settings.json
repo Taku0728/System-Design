@@ -8,6 +8,7 @@
         "xtr1common": "c",
         "cmath": "c",
         "limits": "c",
-        "math.h": "c"
+        "math.h": "c",
+        "iosfwd": "c"
     }
 }

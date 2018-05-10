@@ -417,7 +417,6 @@ void nextt(int t_count){
 			}
 		}
 	}
-	
 }
 
 
@@ -425,7 +424,6 @@ void calcnext(int i,int j,int k){
 	int action;
 	int type = world[i][j][k];
 	int i0, j0, k0, i1, j1, k1, i2, j2, k2;
-
 
 	//確率用基準変数
 	double Pbdy = 0;
@@ -577,7 +575,7 @@ int f_action(int i, int j, int k){
 		}
 		else {
 			number[i][j][k] = 1;
-		}                                        
+		}
 	}
 	if (type == 1){
 		if (genrand_real1() <= P_f_migration) {
