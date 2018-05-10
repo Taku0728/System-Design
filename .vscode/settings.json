@@ -9,6 +9,8 @@
         "cmath": "c",
         "limits": "c",
         "math.h": "c",
-        "iosfwd": "c"
+        "iosfwd": "c",
+        "system_error": "c",
+        "xlocale": "c"
     }
 }

@@ -45,19 +45,19 @@ int min(int a, int b) {
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
 
 #define N (51) //傷の大きさ
-#define H (21) //組織の距離
+#define H (15) //組織の距離
 #define TMPFILE "tempfile.tmp" //一時ファイル//
 #define GNUPLOT "gnuplot" //gnuplotの場所//
-#define INIT_INTERVAL (2) //初期待ち時間(s)//
-#define INTERVAL (0.5) //待ち時間(s)//
-#define FONTSIZE "1.2" //細胞の表示サイズ
+#define INIT_INTERVAL (2.0) //初期待ち時間(s)//
+#define INTERVAL (0.3) //待ち時間(s)//
+#define FONTSIZE "2" //細胞の表示サイズ
 
 int world[N][N][H] = {0}; //セルの状態//
 int prevworld[N][N][H] = {0}; //次のセルの状態//
 int number[N][N][H] = {0}; //細胞の状態//
 
-
-void fputworld(); //gnuplot出力//
+//gnuplot出力//
+void showworld(FILE *pipe, int t, int state);
 void initworld();
 void nextt(int t_count); //状態更新//
 void calcnext(int i, int j, int k);        //ルール適用//
@@ -101,14 +101,7 @@ int main(int argc,char *argv[]){
 	scale = Tf/22; //1hあたりの遊走距離(20ミクロン×scale)//
 	MAXT = scale*1000; //7日間のシミュレーション//
 
-
-  //初期条件//
-	printf("t = 0 h\n");
-	initworld();
-	fputworld();
-
-
-  if((pipe = popen(GNUPLOT " -persist","w")) == NULL){
+	if((pipe = popen(GNUPLOT " -persist","w")) == NULL){
 		fprintf(stderr," Cannot open the pipe! \n");
 		exit(1);
 	}
@@ -122,12 +115,12 @@ int main(int argc,char *argv[]){
 	fprintf(pipe, "unset ytics\n");
 	fprintf(pipe, "unset ztics\n");
 	
+  	//初期条件//
+	printf("t = 0 h\n");
+	initworld();
+
 	//グラフに出力//
-	fprintf(pipe, "set title 't = %d h'\n",t);
-	fprintf(pipe, "set title font 'Arial,15'\n");
-	fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps " FONTSIZE " pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps " FONTSIZE " pt 4 lt 2\n");
-	// fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
-	fflush(pipe);
+	showworld(pipe, t, 1);
 	SLEEP(INIT_INTERVAL);
 	
 	//細胞数をカウント//
@@ -174,18 +167,6 @@ int main(int argc,char *argv[]){
 
 		//状態更新//
 		nextt(t_count);
-
-
-		//グラフに出力//
-		printf("t = %d h\n",t);
-		fputworld();
-		fprintf(pipe, "set title 't = %d h'\n",t);
-		fprintf(pipe, "set title font 'Arial,15'\n");
-		fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps " FONTSIZE " pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps " FONTSIZE " pt 4 lt 2\n");
-		// fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
-		fflush(pipe);
-		SLEEP(INTERVAL);
-
 		//終了条件//
 		e = N*N/100;
 		for(i=0;i<=N-1;++i){
@@ -199,17 +180,19 @@ int main(int argc,char *argv[]){
 		}
 		if (e > 0){
 			printf("SIMULATION OVER\n");
-			fprintf(pipe, "set title 't = %d h OVER'\n",t);
-			fprintf(pipe, "set title font 'Arial,15'\n");
-			fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps " FONTSIZE " pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps " FONTSIZE " pt 4 lt 2\n");
-			fflush(pipe);
+			showworld(pipe, t, 0);
 			break;
 		}
+		
+		//グラフに出力//
+		printf("t = %d h\n",t);
+		showworld(pipe, t, 1);
+		SLEEP(INTERVAL);
 	}
 	return 0;
 }
 
-void fputworld(){
+void showworld(FILE *pipe, int t, int state){
 	int i,j,k;
 	FILE *fp;
 
@@ -245,8 +228,18 @@ void fputworld(){
 	}
 	
 	fclose(fp);
-}
 
+	if (state){
+		fprintf(pipe, "set title 't = %d h'\n",t);
+	}
+	else {
+		fprintf(pipe, "set title 't = %d h OVER'\n",t);
+	}
+	fprintf(pipe, "set title font 'Arial,15'\n");
+	fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps " FONTSIZE " pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps " FONTSIZE " pt 4 lt 2\n");
+	// fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
+	fflush(pipe);
+}
 
 void initworld(){
   int i;
@@ -791,7 +784,6 @@ double getPcoef(int i0, int j0, int k0, int i1, int j1, int k1) {
 			return 0;                                      //確率係数 = 0
 	}
 }
-
 
 void randsortarray(int *a,int len) {
 	int i, j, tem;
