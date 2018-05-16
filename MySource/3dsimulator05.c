@@ -21,21 +21,19 @@ int min(int a, int b) {
 }
 #endif
 
-
 #define Tf (44) //分裂1回あたりの遊走距離(20ミクロン×Tf)//
-#define Tf_m (11) //中皮細胞
-#define P_sleep (0.05) //休眠確率
+#define Tf_m (22) //中皮細胞
+#define P_sleep (0.01) //休眠確率
 // #define P_up 0.5 //前進確率
 // #define P_down 0.1 //後進確率(%)//
 // #define P_side 0.2 //横進確率(%)//
 #define P_spring (50) //1hあたりの湧き出し確率(%)//
 
-
 #define P_f_division (0.5) //線維芽細胞の分裂確率
 #define P_m_division (1.0) //中皮細胞の分裂確率
 #define P_f_migration (0.2) //線維芽細胞の遊走確率
-#define P_m_migration (0.4) //中皮細胞の遊走確率
-#define Survival_cond (3.0) //生存可能な周囲細胞数
+#define P_m_migration (0.7) //中皮細胞の遊走確率
+#define Survival_cond (4.0) //生存可能な周囲細胞数
 #define Survival_cond2 (1.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
 #define Dir_val (2.0) //中皮細胞の増殖・遊走の方向バイアス
 #define Completion_min (4) //中皮細胞の補填に必要な周囲の中皮細胞数の最小
@@ -44,11 +42,11 @@ int min(int a, int b) {
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
 
-#define N (101) //傷の大きさ
-#define H (31) //組織の距離
+#define N (51) //傷の大きさ
+#define H (21) //組織の距離
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (2.0) //初期待ち時間(s)//
-#define INTERVAL (0.8) //待ち時間(s)//
+#define INTERVAL (1.0) //待ち時間(s)//
 
 char *TMPFILE = "tempfile.tmp"; //一時ファイル//
 float FONTSIZE = 1.1; //細胞の表示サイズ
@@ -78,8 +76,6 @@ int isSurvival(int i, int j, int k, int type);
 double getDvalue(int i0, int j0, int k0, int i1, int j1, int j3);                        
 //[i0][j0][k0] -> [i1][j1][k1] の分裂・遊走確率係数
 double getPcoef(int i0, int j0, int k0, int i1, int j1, int k1);
-// void top_count(world,t);
-// void sq_count(world,t); 
 
 
 int main(int argc,char *argv[]){
@@ -125,26 +121,26 @@ int main(int argc,char *argv[]){
 	SLEEP(INIT_INTERVAL);
 	
 	//細胞数をカウント//
-	for(i=0;i<=N-1;++i){
-		for(j=0;j<=N-1;++j){
-			for(k=0;k<=H-1;++k){
-				if(world[i][j][k] == 1){
-					++m_cell;
-				}
-				else if (world[i][j][k] == 2){
-					++f_cell;
-				}
-			}
-		}
-	}
+	// for(i=0;i<=N-1;++i){
+	// 	for(j=0;j<=N-1;++j){
+	// 		for(k=0;k<=H-1;++k){
+	// 			if(world[i][j][k] == 1){
+	// 				++m_cell;
+	// 			}
+	// 			else if (world[i][j][k] == 2){
+	// 				++f_cell;
+	// 			}
+	// 		}
+	// 	}
+	// }
 	
 	//細胞数を出力//
-	file = fopen("count_m_cell.txt","w");
-	fprintf(file,"%d\n",m_cell);
-	fclose(file);
-	file = fopen("count_f_cell.txt","w");
-	fprintf(file,"%d\n",f_cell);
-	fclose(file);
+	// file = fopen("count_m_cell.txt","w");
+	// fprintf(file,"%d\n",m_cell);
+	// fclose(file);
+	// file = fopen("count_f_cell.txt","w");
+	// fprintf(file,"%d\n",f_cell);
+	// fclose(file);
 	
 
 
@@ -241,6 +237,7 @@ void showworld(FILE *pipe, int t, int state){
 	}
 
 	fclose(fp);
+	
 
 	if (state){
 		fprintf(pipe, "set title 't = %d h'\n",t);
@@ -248,13 +245,10 @@ void showworld(FILE *pipe, int t, int state){
 	else {
 		fprintf(pipe, "set title 't = %d h OVER'\n",t);
 	}
-	fprintf(pipe, "set title font 'Arial,15'\n");
 	char string[100];
-	sprintf(string, "splot \"%s\" index 0 w p ps %f pt 4 lt 5,", TMPFILE, FONTSIZE);
-	sprintf(string, "%s \"%s\" index 1 w p ps %f pt 4 lt 2,",string, TMPFILE, FONTSIZE);
-	sprintf(string, "%s \"%s\" index 2 w p ps %f pt 4 lt 3\n",string, TMPFILE, FONTSIZE);
-	fprintf(pipe, string);
-	// fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
+	fprintf(pipe, "splot \"%s\" index 0 w p ps %f pt 4 lt 5, ", TMPFILE, FONTSIZE);
+	fprintf(pipe, "\"%s\" index 1 w p ps %f pt 4 lt 2, ", TMPFILE, FONTSIZE);
+	fprintf(pipe, "\"%s\" index 2 w p ps %f pt 4 lt 3\n", TMPFILE, FONTSIZE);
 	fflush(pipe);
 }
 
@@ -305,7 +299,6 @@ void initworld(){
 	}
 }
 
-
 void spring(){
 	int site_x,site_y;
 	long i,j,k;
@@ -318,7 +311,7 @@ void spring(){
 		for(j=0;j<=N-1;++j){
 			k = 0;
 			zbot[i][j] = 0;
-			ztop[i][j] = N-1;
+			ztop[i][j] = H-1;
 			while(k<=H-1){
 				if(world[i][j][k] == 0){
 					zbot[i][j] = k;
@@ -326,7 +319,7 @@ void spring(){
 				}
 				++k;
 			}
-			k = N-1;
+			k = H-1;
 			while(k>=0){
 				if(world[i][j][k] == 0){
 					ztop[i][j] = k;
@@ -358,7 +351,6 @@ void spring(){
 	}
 }
 
-
 void nextt(int t_count){
 	int i,j,k;
 	
@@ -374,7 +366,7 @@ void nextt(int t_count){
 		i = a[n]/(N*H);
 		j = (a[n] - i*N*H)/H;
 		k = a[n] - i*N*H - j*H;
-        if (world[i][j][k] != 0) {
+        if (world[i][j][k] == 1 || world[i][j][k] == 2) {
 		    calcnext(i, j, k);
         }
 	}
@@ -425,7 +417,6 @@ void nextt(int t_count){
 		}
 	}
 
-
 	//境界条件・線維芽細胞//
 	for(i=0;i<=N-1;++i){
 		for(j=0;j<=N-1;++j){
@@ -440,7 +431,6 @@ void nextt(int t_count){
 		}
 	}
 }
-
 
 void calcnext(int i,int j,int k){
 	int action;
@@ -459,7 +449,7 @@ void calcnext(int i,int j,int k){
 	double SumPmig = 0;
 	//増殖確率係数の記録
 	double Pdiv[3][3][3] = {0};
-	//遊走確率係数の記録        
+	//遊走確率係数の記録
 	double Pmig[3][3][3] = {0};
 
 	//周辺状態を確認
@@ -481,17 +471,14 @@ void calcnext(int i,int j,int k){
 				if (type == 2) {
 					Ptem *= getDvalue(i, j, k, i2, j2, k2);
 				}
-				if ((world[i2][j2][k2] == 0 || world[i2][j2][k2] == 3) && isViable(i2, j2, k2, type)) {
-					if (world[i2][j2][k2] == 0){
-						//増殖確率係数の累積
-						Pdiv[i2 - i0][j2 - j0][k2 - k0] = Ptem;
-						SumPdiv += Ptem;
-					}
-					if (world[i2][j2][k2] == 0 || world[i2][j2][k2] == 3){
-						//遊走確率係数の累積
-						Pmig[i2 - i0][j2 - j0][k2 - k0] = Ptem;
-						SumPmig += Ptem;
-					}
+				if ((world[i2][j2][k2] == 0 || (world[i2][j2][k2] == 3 && type == 1)) &&
+					isViable(i2, j2, k2, type)) {
+					//増殖確率係数の累積
+					Pdiv[i2 - i0][j2 - j0][k2 - k0] = Ptem;
+					SumPdiv += Ptem;
+					//遊走確率係数の累積
+					Pmig[i2 - i0][j2 - j0][k2 - k0] = Ptem;
+					SumPmig += Ptem;
 				}
 			}
 		}
@@ -565,17 +552,13 @@ void calcnext(int i,int j,int k){
 				for (k2 = k0; k2 <= k1; ++k2) {
 					Ptem += Pmig[i2 - i0][j2 - j0][k2 - k0];
 					if (Ptem >= Pbdy) {
-						if (world[i2][j2][k2] != 0 || Pdiv[i2 - i0][j2 - j0][k2 - k0] == 0) {
-							++number[i][j][k];
-							return;
-						}
 						world[i2][j2][k2] = type;
 						number[i2][j2][k2] = number[i][j][k] + 1;
 						if(type == 1){
-							world[i][j][k] = 0;
+							world[i][j][k] = 3;
 						}
 						else if (type == 2){
-							world[i][j][k] = 3;
+							world[i][j][k] = 0;
 						}
 						number[i][j][k] = 0;
 						return;
@@ -585,7 +568,6 @@ void calcnext(int i,int j,int k){
 		}
 	}
 }
-
 
 int f_action(int i, int j, int k){
 	int type = world[i][j][k];
@@ -621,7 +603,6 @@ int f_action(int i, int j, int k){
 	return 0;                                                                //静止
 }
 
-
 int isViable(int i, int j, int k, int type) {
 	double tem = 0;
 	double val = 0;
@@ -637,24 +618,24 @@ int isViable(int i, int j, int k, int type) {
 	//線維芽細胞
 	if (type == 1){
 		//中皮細胞の上では増殖できない
-		if (k < (H - 1)/2) {
-			for (i2 = i0; i2 <= i1; ++i2) {
-				for (j2 = j0; j2 <= j1; ++j2) {
-					if (world[i2][j2][k0] == 2 || world[i2][j2][max(0, k0 - 1)] == 2) {
-						return 0;
-					}
-				}
-			}
-		}
-		else {
-			for (i2 = i0; i2 <= i1; ++i2) {
-				for (j2 = j0; j2 <= j1; ++j2) {
-					if (world[i2][j2][k1] == 2 || world[i2][j2][min(H - 1, k1 + 1)] == 2) {
-						return 0;
-					}
-				}
-			}
-		}
+		// if (k < (H - 1)/2) {
+		// 	for (i2 = i0; i2 <= i1; ++i2) {
+		// 		for (j2 = j0; j2 <= j1; ++j2) {
+		// 			if (world[i2][j2][k0] == 2 || world[i2][j2][max(0, k0 - 1)] == 2) {
+		// 				return 0;
+		// 			}
+		// 		}
+		// 	}
+		// }
+		// else {
+		// 	for (i2 = i0; i2 <= i1; ++i2) {
+		// 		for (j2 = j0; j2 <= j1; ++j2) {
+		// 			if (world[i2][j2][k1] == 2 || world[i2][j2][min(H - 1, k1 + 1)] == 2) {
+		// 				return 0;
+		// 			}
+		// 		}
+		// 	}
+		// }
 		
 		for (i2 = i0; i2 <= i1; ++i2) {
 			for (j2 = j0; j2 <= j1; ++j2) {
@@ -662,7 +643,12 @@ int isViable(int i, int j, int k, int type) {
 					if (world[i2][j2][k2] == 0) {
 						continue;
 					}
-					val += getPcoef(i, j, k, i2, j2, k2);
+					if (world[i2][j2][k2] == 2) {
+						val -= 0.5 * getPcoef(i, j, k, i2, j2, k2);
+					}
+					else {
+						val += getPcoef(i, j, k, i2, j2, k2);
+					}
 				}
 			}
 		}
@@ -678,24 +664,24 @@ int isViable(int i, int j, int k, int type) {
 	//中皮細胞
 	else if (type == 2) {
 		//線維芽細胞の下では増殖できない
-		if (k < (H - 1)/2) {
-			for (i2 = i0; i2 <= i1; ++i2) {
-				for (j2 = j0; j2 <= j1; ++j2) {
-					if (world[i2][j2][k1] == 1 || world[i2][j2][min(H - 1, k1 + 1)] == 1) {
-						return 0;
-					}
-				}
-			}
-		}
-		else {
-			for (i2 = i0; i2 <= i1; ++i2) {
-				for (j2 = j0; j2 <= j1; ++j2) {
-					if (world[i2][j2][k0] == 1 || world[i2][j2][max(0, k0 - 1)] == 1) {
-						return 0;
-					}
-				}
-			}
-		}
+		// if (k < (H - 1)/2) {
+		// 	for (i2 = i0; i2 <= i1; ++i2) {
+		// 		for (j2 = j0; j2 <= j1; ++j2) {
+		// 			if (world[i2][j2][k1] == 1 || world[i2][j2][min(H - 1, k1 + 1)] == 1) {
+		// 				return 0;
+		// 			}
+		// 		}
+		// 	}
+		// }
+		// else {
+		// 	for (i2 = i0; i2 <= i1; ++i2) {
+		// 		for (j2 = j0; j2 <= j1; ++j2) {
+		// 			if (world[i2][j2][k0] == 1 || world[i2][j2][max(0, k0 - 1)] == 1) {
+		// 				return 0;
+		// 			}
+		// 		}
+		// 	}
+		// }
 		for (i2 = i0; i2 <= i1; ++i2) {
 			for (j2 = j0; j2 <= j1; ++j2) {
 				for (k2 = k0; k2 <= k1; ++k2) {
@@ -705,7 +691,7 @@ int isViable(int i, int j, int k, int type) {
 					tem = getPcoef(i, j, k, i2, j2, k2);
 					val += tem;
 					//線維芽細胞が隣接する
-					if (world[i2][j2][k2] == 1) {
+					if (world[i2][j2][k2] == 1 || world[i2][j2][k2] == 3) {
 						val2 += tem;
 					}
 				}
@@ -718,9 +704,10 @@ int isViable(int i, int j, int k, int type) {
 			return 0;
 		}
 	}
-	
+	else{
+		return 0;
+	}
 }
-
 
 int isSurvival(int i, int j, int k, int type) {
 	double tem = 0;
