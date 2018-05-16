@@ -11,6 +11,8 @@
         "math.h": "c",
         "iosfwd": "c",
         "system_error": "c",
-        "xlocale": "c"
+        "xlocale": "c",
+        "string": "c",
+        "xstring": "c"
     }
 }

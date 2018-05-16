@@ -23,7 +23,7 @@ int min(int a, int b) {
 
 
 #define Tf (44) //分裂1回あたりの遊走距離(20ミクロン×Tf)//
-#define Tf_m (44) //中皮細胞
+#define Tf_m (11) //中皮細胞
 #define P_sleep (0.05) //休眠確率
 // #define P_up 0.5 //前進確率
 // #define P_down 0.1 //後進確率(%)//
@@ -34,7 +34,7 @@ int min(int a, int b) {
 #define P_f_division (0.5) //線維芽細胞の分裂確率
 #define P_m_division (1.0) //中皮細胞の分裂確率
 #define P_f_migration (0.2) //線維芽細胞の遊走確率
-#define P_m_migration (0.8) //中皮細胞の遊走確率
+#define P_m_migration (0.4) //中皮細胞の遊走確率
 #define Survival_cond (3.0) //生存可能な周囲細胞数
 #define Survival_cond2 (1.0) //中皮細胞の生存に必要な周囲の線維芽細胞数
 #define Dir_val (2.0) //中皮細胞の増殖・遊走の方向バイアス
@@ -44,13 +44,14 @@ int min(int a, int b) {
 #define R_sqrt3 (0.577350) //１分のルート3の高速化
 #define R_sqrt2 (0.707107) //１分のルート2の高速化
 
-#define N (51) //傷の大きさ
-#define H (15) //組織の距離
-#define TMPFILE "tempfile.tmp" //一時ファイル//
+#define N (101) //傷の大きさ
+#define H (31) //組織の距離
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (2.0) //初期待ち時間(s)//
-#define INTERVAL (0.3) //待ち時間(s)//
-#define FONTSIZE "2" //細胞の表示サイズ
+#define INTERVAL (0.8) //待ち時間(s)//
+
+char *TMPFILE = "tempfile.tmp"; //一時ファイル//
+float FONTSIZE = 1.1; //細胞の表示サイズ
 
 int world[N][N][H] = {0}; //セルの状態//
 int prevworld[N][N][H] = {0}; //次のセルの状態//
@@ -205,28 +206,40 @@ void showworld(FILE *pipe, int t, int state){
 	//線維芽細胞の位置を出力//
 	for(i=0;i<=N-1;++i){
 		for(j=0;j<=N-1;++j){
-	  for (k=0;k<=H-1;++k){
-			  if(world[i][j][k] == 1){ 
-				fprintf(fp,"%d %d %d\n",i,j,k);
-		}
+	  		for (k=0;k<=H-1;++k){
+				if(world[i][j][k] == 1){ 
+					fprintf(fp,"%d %d %d\n",i,j,k);
+				}
 			}
 		}
 	}
 	
 	fprintf(fp,"\n\n");
 	
-	
 	//中皮細胞の位置を出力//
 	for(i=0;i<=N-1;++i){
 		for(j=0;j<=N-1;++j){
-	  for (k=0;k<=H-1;++k){
-			  if(world[i][j][k] == 2){ 
-				fprintf(fp,"%d %d %d\n",i,j,k);
-		}
+			for (k=0;k<=H-1;++k){
+			  	if(world[i][j][k] == 2){ 
+					fprintf(fp,"%d %d %d\n",i,j,k);
+				}
 			}
 		}
 	}
 	
+	fprintf(fp,"\n\n");
+	
+	//コラーゲンの位置を出力//
+	for(i=0;i<=N-1;++i){
+		for(j=0;j<=N-1;++j){
+			for (k=0;k<=H-1;++k){
+			  	if(world[i][j][k] == 3){ 
+					fprintf(fp,"%d %d %d\n",i,j,k);
+				}
+			}
+		}
+	}
+
 	fclose(fp);
 
 	if (state){
@@ -236,7 +249,11 @@ void showworld(FILE *pipe, int t, int state){
 		fprintf(pipe, "set title 't = %d h OVER'\n",t);
 	}
 	fprintf(pipe, "set title font 'Arial,15'\n");
-	fprintf(pipe,"splot \"" TMPFILE "\" index 0 w p ps " FONTSIZE " pt 4 lt 5, \"" TMPFILE "\" index 1 w p ps " FONTSIZE " pt 4 lt 2\n");
+	char string[100];
+	sprintf(string, "splot \"%s\" index 0 w p ps %f pt 4 lt 5,", TMPFILE, FONTSIZE);
+	sprintf(string, "%s \"%s\" index 1 w p ps %f pt 4 lt 2,",string, TMPFILE, FONTSIZE);
+	sprintf(string, "%s \"%s\" index 2 w p ps %f pt 4 lt 3\n",string, TMPFILE, FONTSIZE);
+	fprintf(pipe, string);
 	// fprintf(pipe,"name='move%d'\n load 'savegif.gp'\n",t);
 	fflush(pipe);
 }
@@ -248,14 +265,26 @@ void initworld(){
 
 
 	//初期条件//
-  for(i=0;i<=N-1;++i){
-	for (j=0;j<=N-1;++j){
-	  world[i][j][0] = 1;
-		  number[i][j][0] = genrand_int32()%Tf + 1;
-		world[i][j][H-1] = 1;
-		number[i][j][H-1] = genrand_int32()%Tf + 1;
-	}
-  }
+  	for(i=0;i<=N-1;++i){
+		for (j=0;j<=N-1;++j){
+	  		world[i][j][0] = 1;
+		  	number[i][j][0] = genrand_int32()%Tf + 1;
+			world[i][j][H-1] = 1;
+			number[i][j][H-1] = genrand_int32()%Tf + 1;
+		}
+  	}
+
+	for(i=0;i<=N-1;++i){
+		for (j=0;j<=N-1;++j){
+			if (genrand_real1() < 0.01){
+	  			world[i][j][1] = 3;
+			}
+			if (genrand_real1() < 0.01){
+	  			world[i][j][H - 2] = 3;
+			}
+		}
+  	}
+
 	for(i=0;i<=N-1;++i){
 		world[i][0][1] = 2;
 		number[i][0][1] = genrand_int32()%Tf_m + 1;
@@ -452,13 +481,17 @@ void calcnext(int i,int j,int k){
 				if (type == 2) {
 					Ptem *= getDvalue(i, j, k, i2, j2, k2);
 				}
-				if (world[i2][j2][k2] == 0 && isViable(i2, j2, k2, type)) {
-					//遊走確率係数の累積
-					Pmig[i2 - i0][j2 - j0][k2 - k0] = Ptem;
-					SumPmig += Ptem;
-					//増殖確率係数の累積
-					Pdiv[i2 - i0][j2 - j0][k2 - k0] = Ptem;
-					SumPdiv += Ptem;
+				if ((world[i2][j2][k2] == 0 || world[i2][j2][k2] == 3) && isViable(i2, j2, k2, type)) {
+					if (world[i2][j2][k2] == 0){
+						//増殖確率係数の累積
+						Pdiv[i2 - i0][j2 - j0][k2 - k0] = Ptem;
+						SumPdiv += Ptem;
+					}
+					if (world[i2][j2][k2] == 0 || world[i2][j2][k2] == 3){
+						//遊走確率係数の累積
+						Pmig[i2 - i0][j2 - j0][k2 - k0] = Ptem;
+						SumPmig += Ptem;
+					}
 				}
 			}
 		}
@@ -538,7 +571,12 @@ void calcnext(int i,int j,int k){
 						}
 						world[i2][j2][k2] = type;
 						number[i2][j2][k2] = number[i][j][k] + 1;
-						world[i][j][k] = 0;
+						if(type == 1){
+							world[i][j][k] = 0;
+						}
+						else if (type == 2){
+							world[i][j][k] = 3;
+						}
 						number[i][j][k] = 0;
 						return;
 					}
