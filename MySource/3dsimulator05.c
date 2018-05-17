@@ -35,25 +35,45 @@ int min(int a, int b) {
 #define Completion_min (4) //中皮細胞の補填に必要な周囲の中皮細胞数の最小
 #define Completion_max (8) //中皮細胞の補填に必要な周囲の中皮細胞数の最大
 
-#define R_sqrt3 (0.577350) //１分のルート3の高速化
-#define R_sqrt2 (0.707107) //１分のルート2の高速化
-
-#define N (101) //傷の大きさ
-#define H (31) //組織の距離
+#define N (51) //傷の大きさ
+#define H (21) //組織の距離
 #define GNUPLOT "gnuplot" //gnuplotの場所//
-#define INIT_INTERVAL (2.0) //初期待ち時間(s)//
-#define INTERVAL (1.0) //待ち時間(s)//
+#define INIT_INTERVAL (5.0) //初期待ち時間(s)//
+#define INTERVAL (2.0) //待ち時間(s)//
 
-float P_spring = 0.0001; //湧き出し確率[1t_count,1セル]
-char *TMPFILE = "tempfile.tmp"; //一時ファイル//
-float FONTSIZE = 1.1; //細胞の表示サイズ
+//ACCELARATION OF 1/SQRT(3)
+const double R_sqrt3 = 0.57735026919;
+//ACCELARATION OF 1/SQRT(2)
+const double R_sqrt2 = 0.70710678118;
+
+//FREQUENCY OF POLUMER DIFFUSION PER t_count
+const int FREQ = 1;
+//DIFFUSION COEFFICIENT OF FIBRIN
+const double COE_DIF = 0.15;
+//FIBRINOLYSIS REACTION RARE
+const double RATE_FIB = 0.15;
+
+//PROBABILITY OF SPRING [t_count*vacancy]
+const double P_spring = 0.0001;
+//TEMP FILE FOR OUTPUT
+const char *TMPFILE = "tempfile.tmp";
+const char *TMPFILE2 = "tempfile2.tmp";
+//DISPLAY SIZE OF CELLS
+const float FONTSIZE = 1.1; //細胞の表示サイズ
 
 int world[N][N][H] = {0}; //セルの状態//
 int prevworld[N][N][H] = {0}; //次のセルの状態//
 int number[N][N][H] = {0}; //細胞の状態//
 
+//CONCENTRATION OF FIBRIN
+double CFibrin[N][N][H] = {0};
+double NextCFibrin[N][N][H] = {0};
+//CONCENTRATION OF PLASMIN
+double CPlasmin[N][N][H] = {0};
+double NextCPlasmin[N][N][H] = {0};
+
 //gnuplot出力//
-void showworld(FILE *pipe, int t, int state);
+void showworld(FILE *pipe, FILE *pipe2, int t, int state);
 void initworld();
 void nextt(int t_count); //状態更新//
 void calcnext(int i, int j, int k);        //ルール適用//
@@ -62,6 +82,8 @@ void completion(int i, int j, int k);        //空きの補完
 //配列のシャッフル
 void randsortarray(int *a,int len);
 
+//DIFFUSION AND FIBRINOLYSIS OF FIBRIN
+void actFibrin(int i, int j, int k);
 
 //行動（分裂・遊走・静止）の決定
 int f_action(int i, int j, int k);                                 
@@ -86,6 +108,7 @@ int main(int argc,char *argv[]){
 	int MAXT;
 	int fission_total = 0;
 	FILE *pipe;
+	FILE *pipe2;
 	FILE *file;
 	FILE *fp;
 
@@ -99,7 +122,6 @@ int main(int argc,char *argv[]){
 		fprintf(stderr," Cannot open the pipe! \n");
 		exit(1);
 	}
-	
 	//gnuplotの設定//
 	fprintf(pipe,"unset key\n");
 	fprintf(pipe,"set xrange [-10:%d]\n",N+10);
@@ -108,13 +130,26 @@ int main(int argc,char *argv[]){
 	fprintf(pipe, "unset xtics\n");
 	fprintf(pipe, "unset ytics\n");
 	fprintf(pipe, "unset ztics\n");
+
+	if((pipe2 = popen(GNUPLOT " -persist","w")) == NULL){
+		fprintf(stderr," Cannot open the pipe! \n");
+		exit(1);
+	}
+	//gnuplotの設定//
+	fprintf(pipe2,"unset key\n");
+	fprintf(pipe2,"set xrange [-10:%d]\n",N+10);
+	fprintf(pipe2,"set yrange [-10:%d]\n",N+10);
+	fprintf(pipe2,"set zrange [0:%d]\n",H);
+	fprintf(pipe2, "unset xtics\n");
+	fprintf(pipe2, "unset ytics\n");
+	fprintf(pipe2, "unset ztics\n");
 	
   	//初期条件//
 	printf("t = 0 h\n");
 	initworld();
 
 	//グラフに出力//
-	showworld(pipe, t, 1);
+	showworld(pipe, pipe2, t, 1);
 	SLEEP(INIT_INTERVAL);
 	
 	//細胞数をカウント//
@@ -171,23 +206,22 @@ int main(int argc,char *argv[]){
 		}
 		if (e > 0){
 			printf("SIMULATION OVER\n");
-			showworld(pipe, t, 0);
+			showworld(pipe, pipe2, t, 0);
 			break;
 		}
 		
 		//グラフに出力//
 		printf("t = %d h\n",t);
-		showworld(pipe, t, 1);
+		showworld(pipe, pipe2, t, 1);
 		SLEEP(INTERVAL);
 	}
 	return 0;
 }
 
-void showworld(FILE *pipe, int t, int state){
+void showworld(FILE *pipe, FILE *pipe2, int t, int state){
 	int i,j,k;
 	FILE *fp;
-
-
+	
 	if((fp = fopen(TMPFILE,"w")) == NULL){ 
 		fprintf(stderr," Cannot open the file! \n");
 		exit(1);
@@ -230,6 +264,52 @@ void showworld(FILE *pipe, int t, int state){
 		}
 	}
 
+    fprintf(fp,"\n\n");
+	fclose(fp);
+
+	if((fp = fopen(TMPFILE2,"w")) == NULL){ 
+		fprintf(stderr," Cannot open the file! \n");
+		exit(1);
+	}
+
+    //フィブリンの位置を3段階で出力
+    //フィブリンの位置を出力 1//
+	for(i=0;i<=N-1;++i){
+		for(j=0;j<=N-1;++j){
+	  		for (k=0;k<=H-1;++k){
+			  	if(CFibrin[i][j][k] > 0.75){ 
+					fprintf(fp,"%d %d %d\n",i,j,k);
+				}
+			}
+		}
+	}
+
+    fprintf(fp,"\n\n");
+    
+    //フィブリンの位置を出力 2//
+	for(i=0;i<=N-1;++i){
+		for(j=0;j<=N-1;++j){
+	  		for (k=0;k<=H-1;++k){
+			  	if(CFibrin[i][j][k] < 0.75 && CFibrin[i][j][k] > 0.5 ){ 
+					fprintf(fp,"%d %d %d\n",i,j,k);
+				}
+			}
+		}
+	}
+
+    fprintf(fp,"\n\n");
+    
+    //フィブリンの位置を出力 3//
+	for(i=0;i<=N-1;++i){
+		for(j=0;j<=N-1;++j){
+	 		for (k=0;k<=H-1;++k){
+			  	if(CFibrin[i][j][k] < 0.5 && CFibrin[i][j][k] > 0.25 ){ 
+					fprintf(fp,"%d %d %d\n",i,j,k);
+				}
+			}
+		}
+	}
+
 	fclose(fp);
 	
 
@@ -239,11 +319,27 @@ void showworld(FILE *pipe, int t, int state){
 	else {
 		fprintf(pipe, "set title 't = %d h OVER'\n",t);
 	}
-	char string[100];
+	//線維芽細胞
 	fprintf(pipe, "splot \"%s\" index 0 w p ps %f pt 4 lt 5, ", TMPFILE, FONTSIZE);
+	//中皮細胞
 	fprintf(pipe, "\"%s\" index 1 w p ps %f pt 4 lt 2, ", TMPFILE, FONTSIZE);
+	//コラーゲン
 	fprintf(pipe, "\"%s\" index 2 w p ps %f pt 4 lt 3\n", TMPFILE, FONTSIZE);
 	fflush(pipe);
+
+	if (state){
+		fprintf(pipe2, "set title 't = %d h'\n",t);
+	}
+	else {
+		fprintf(pipe2, "set title 't = %d h OVER'\n",t);
+	}
+	//フィブリン1
+	fprintf(pipe2, "splot \"%s\" index 0 w p ps %f pt 4 lt 1, ", TMPFILE2, 0.3);
+	//フィブリン2
+	fprintf(pipe2, "\"%s\" index 1 w p ps %f pt 4 lt 1, ", TMPFILE2, 0.2);
+	//フィブリン3
+	fprintf(pipe2, "\"%s\" index 2 w p ps %f pt 4 lt 1\n", TMPFILE2, 0.1);
+	fflush(pipe2);
 }
 
 void initworld(){
@@ -291,6 +387,17 @@ void initworld(){
 		world[N-1][i][H-2] = 2;
 		number[N-1][i][H-2] = genrand_int32()%Tf_m + 1;
 	}
+
+	//フィブリンで充満
+    for(i=0;i<=N-1;++i){
+	    for(j=0;j<=N-1;++j){
+		    for(k=0;k<=H-1;++k){
+                if(world[i][j][k] == 0){
+				    CFibrin[i][j][k] = 1;
+                }
+            }
+    	}
+	}
 }
 
 void spring(){
@@ -333,15 +440,33 @@ void nextt(int t_count){
 		    calcnext(i, j, k);
         }
 	}
-	
-	// 空きの補完
-	for (n = 0; n <= N*N*H - 1; ++n) {
-		i = a[n]/(N*H);
-		j = (a[n] - i*N*H)/H;
-		k = a[n] - i*N*H - j*H;
-		if (world[i][j][k] == 0) {
-		completion(i, j, k);
-		}
+
+	for (n=0; n < FREQ; ++n) {
+		//プラスミンがフィブリンのあるところに生成
+    	for(i=0;i<=N-1;++i){
+			for(j=0;j<=N-1;++j){
+				for(k=0;k<=H-1;++k){
+    	            CPlasmin[i][j][k] = CFibrin[i][j][k];
+    	        }
+    	    }
+    	}
+    	//フィブリンの拡散と線溶
+    	for(i=0;i<=N-1;++i){
+			for(j=0;j<=N-1;++j){
+				for(k=0;k<=H-1;++k){
+					if (world[i][j][k] == 0){
+    	           		actFibrin(i,j,k);
+					}
+    	        }
+    	    }
+    	}
+    	for(i=0;i<=N-1;++i){
+			for(j=0;j<=N-1;++j){
+				for(k=0;k<=H-1;++k){
+    	            CFibrin[i][j][k] = NextCFibrin[i][j][k];
+    	        }
+    	    }
+    	}
 	}
 
 	//境界条件・中皮細胞//
@@ -392,6 +517,26 @@ void nextt(int t_count){
 				number[i][j][H-1] = genrand_int32()%Tf + 1; //供給細胞の状態//
 			}
 		}
+	}
+
+	//壁でフィブリンが消失//
+    for(i=0;i<=N-1;++i){
+	    for(j=0;j<=N-1;++j){
+		    for(k=0;k<=H-1;++k){
+			    if(i == 0) {
+				    CFibrin[i][j][k] = 0;
+                }
+                if(i == N-1) {
+				    CFibrin[i][j][k] = 0;
+                }
+                if(j == 0) {
+				    CFibrin[i][j][k] = 0;
+                }
+                if(j == N-1) {
+				    CFibrin[i][j][k] = 0;
+                }
+		    }
+	    }
 	}
 }
 
@@ -586,26 +731,9 @@ int isViable(int i, int j, int k, int type) {
 	
 	//線維芽細胞
 	if (type == 1){
-		//中皮細胞の上では増殖できない
-		// if (k < (H - 1)/2) {
-		// 	for (i2 = i0; i2 <= i1; ++i2) {
-		// 		for (j2 = j0; j2 <= j1; ++j2) {
-		// 			if (world[i2][j2][k0] == 2 || world[i2][j2][max(0, k0 - 1)] == 2) {
-		// 				return 0;
-		// 			}
-		// 		}
-		// 	}
-		// }
-		// else {
-		// 	for (i2 = i0; i2 <= i1; ++i2) {
-		// 		for (j2 = j0; j2 <= j1; ++j2) {
-		// 			if (world[i2][j2][k1] == 2 || world[i2][j2][min(H - 1, k1 + 1)] == 2) {
-		// 				return 0;
-		// 			}
-		// 		}
-		// 	}
-		// }
-		
+		if (CFibrin[i][j][k] < 0.1) {
+			return 0;
+		}
 		for (i2 = i0; i2 <= i1; ++i2) {
 			for (j2 = j0; j2 <= j1; ++j2) {
 				for (k2 = k0; k2 <= k1; ++k2) {
@@ -632,25 +760,6 @@ int isViable(int i, int j, int k, int type) {
 
 	//中皮細胞
 	else if (type == 2) {
-		//線維芽細胞の下では増殖できない
-		// if (k < (H - 1)/2) {
-		// 	for (i2 = i0; i2 <= i1; ++i2) {
-		// 		for (j2 = j0; j2 <= j1; ++j2) {
-		// 			if (world[i2][j2][k1] == 1 || world[i2][j2][min(H - 1, k1 + 1)] == 1) {
-		// 				return 0;
-		// 			}
-		// 		}
-		// 	}
-		// }
-		// else {
-		// 	for (i2 = i0; i2 <= i1; ++i2) {
-		// 		for (j2 = j0; j2 <= j1; ++j2) {
-		// 			if (world[i2][j2][k0] == 1 || world[i2][j2][max(0, k0 - 1)] == 1) {
-		// 				return 0;
-		// 			}
-		// 		}
-		// 	}
-		// }
 		for (i2 = i0; i2 <= i1; ++i2) {
 			for (j2 = j0; j2 <= j1; ++j2) {
 				for (k2 = k0; k2 <= k1; ++k2) {
@@ -784,4 +893,21 @@ void randsortarray(int *a,int len) {
 		a[i] = a[j];
 		a[j] = tem;
 	}
+}
+
+void actFibrin(int i, int j, int k) {
+	int i0 = max(0, i - 1);
+	int j0 = max(0, j - 1);
+	int k0 = max(0, k - 1);
+	int i1 = min(N - 1, i + 1);
+	int j1 = min(N - 1, j + 1);
+	int k1 = min(H - 1, k + 1);
+    NextCFibrin[i][j][k] = CFibrin[i][j][k] + COE_DIF * (- 6 * CFibrin[i][j][k] 
+    + CFibrin[i0][j][k] + CFibrin[i1][j][k] + CFibrin[i][j0][k] + CFibrin[i][j1][k] 
+    + CFibrin[i][j][k0] + CFibrin[i][j][k1] )
+    - RATE_FIB * CFibrin[i][j][k] * CPlasmin[i][j][k];
+    
+    NextCFibrin[i][j][k] = min(1, NextCFibrin[i][j][k]);
+    NextCFibrin[i][j][k] = max(0, NextCFibrin[i][j][k]);
+
 }
