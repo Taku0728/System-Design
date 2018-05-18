@@ -39,7 +39,7 @@ int min(int a, int b) {
 #define H (21) //組織の距離
 #define GNUPLOT "gnuplot" //gnuplotの場所//
 #define INIT_INTERVAL (5.0) //初期待ち時間(s)//
-#define INTERVAL (2.0) //待ち時間(s)//
+#define INTERVAL (0.5) //待ち時間(s)//
 
 //ACCELARATION OF 1/SQRT(3)
 const double R_sqrt3 = 0.57735026919;
@@ -57,7 +57,6 @@ const double RATE_FIB = 0.15;
 const double P_spring = 0.0001;
 //TEMP FILE FOR OUTPUT
 const char *TMPFILE = "tempfile.tmp";
-const char *TMPFILE2 = "tempfile2.tmp";
 //DISPLAY SIZE OF CELLS
 const float FONTSIZE = 1.1; //細胞の表示サイズ
 
@@ -143,6 +142,8 @@ int main(int argc,char *argv[]){
 	fprintf(pipe2, "unset xtics\n");
 	fprintf(pipe2, "unset ytics\n");
 	fprintf(pipe2, "unset ztics\n");
+	fprintf(pipe2, "set pm3\n");
+
 	
   	//初期条件//
 	printf("t = 0 h\n");
@@ -265,20 +266,14 @@ void showworld(FILE *pipe, FILE *pipe2, int t, int state){
 	}
 
     fprintf(fp,"\n\n");
-	fclose(fp);
-
-	if((fp = fopen(TMPFILE2,"w")) == NULL){ 
-		fprintf(stderr," Cannot open the file! \n");
-		exit(1);
-	}
 
     //フィブリンの位置を3段階で出力
-    //フィブリンの位置を出力 1//
+    //フィブリンの位置を出力 1
 	for(i=0;i<=N-1;++i){
 		for(j=0;j<=N-1;++j){
 	  		for (k=0;k<=H-1;++k){
 			  	if(CFibrin[i][j][k] > 0.75){ 
-					fprintf(fp,"%d %d %d\n",i,j,k);
+					fprintf(fp,"%d %d %d \n",i,j,k);
 				}
 			}
 		}
@@ -312,7 +307,6 @@ void showworld(FILE *pipe, FILE *pipe2, int t, int state){
 
 	fclose(fp);
 	
-
 	if (state){
 		fprintf(pipe, "set title 't = %d h'\n",t);
 	}
@@ -332,13 +326,13 @@ void showworld(FILE *pipe, FILE *pipe2, int t, int state){
 	}
 	else {
 		fprintf(pipe2, "set title 't = %d h OVER'\n",t);
-	}
-	//フィブリン1
-	fprintf(pipe2, "splot \"%s\" index 0 w p ps %f pt 4 lt 1, ", TMPFILE2, 0.3);
-	//フィブリン2
-	fprintf(pipe2, "\"%s\" index 1 w p ps %f pt 4 lt 1, ", TMPFILE2, 0.2);
-	//フィブリン3
-	fprintf(pipe2, "\"%s\" index 2 w p ps %f pt 4 lt 1\n", TMPFILE2, 0.1);
+	}	
+	// //フィブリン1
+	// fprintf(pipe2, "splot \"%s\" index 3 w p ps %f pt 4 lt 1, ", TMPFILE, 0.3);
+	// //フィブリン2
+	// fprintf(pipe2, "\"%s\" index 4 w p ps %f pt 4 lt 1, ", TMPFILE, 0.2);
+	// //フィブリン3
+	// fprintf(pipe2, "\"%s\" index 5 w p ps %f pt 4 lt 1\n", TMPFILE, 0.1);
 	fflush(pipe2);
 }
 
@@ -904,8 +898,8 @@ void actFibrin(int i, int j, int k) {
 	int k1 = min(H - 1, k + 1);
     NextCFibrin[i][j][k] = CFibrin[i][j][k] + COE_DIF * (- 6 * CFibrin[i][j][k] 
     + CFibrin[i0][j][k] + CFibrin[i1][j][k] + CFibrin[i][j0][k] + CFibrin[i][j1][k] 
-    + CFibrin[i][j][k0] + CFibrin[i][j][k1] )
-    - RATE_FIB * CFibrin[i][j][k] * CPlasmin[i][j][k];
+    + CFibrin[i][j][k0] + CFibrin[i][j][k1] );
+    //- RATE_FIB * CFibrin[i][j][k] * CPlasmin[i][j][k];
     
     NextCFibrin[i][j][k] = min(1, NextCFibrin[i][j][k]);
     NextCFibrin[i][j][k] = max(0, NextCFibrin[i][j][k]);
